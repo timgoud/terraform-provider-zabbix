@@ -1,9 +1,10 @@
 package provider
 
 import (
-	"github.com/dainis/zabbix"
-	"github.com/hashicorp/terraform/helper/schema"
 	"log"
+
+	"github.com/claranet/go-zabbix-api"
+	"github.com/hashicorp/terraform/helper/schema"
 )
 
 func resourceZabbixHostGroup() *schema.Resource {
@@ -40,12 +41,12 @@ func resourceZabbixHostGroupCreate(d *schema.ResourceData, meta interface{}) err
 		return err
 	}
 
-	groupId := groups[0].GroupId
+	groupID := groups[0].GroupID
 
-	log.Printf("Created host group, id is %s", groupId)
+	log.Printf("Created host group, id is %s", groupID)
 
-	d.Set("group_id", groupId)
-	d.SetId(groupId)
+	d.Set("group_id", groupID)
+	d.SetId(groupID)
 
 	return nil
 }
@@ -55,7 +56,7 @@ func resourceZabbixHostGroupRead(d *schema.ResourceData, meta interface{}) error
 
 	log.Printf("Will read host group with id %s", d.Id())
 
-	group, err := api.HostGroupGetById(d.Id())
+	group, err := api.HostGroupGetByID(d.Id())
 
 	if err != nil {
 		return err
@@ -71,7 +72,7 @@ func resourceZabbixHostGroupUpdate(d *schema.ResourceData, meta interface{}) err
 
 	hostGroup := zabbix.HostGroup{
 		Name:    d.Get("name").(string),
-		GroupId: d.Id(),
+		GroupID: d.Id(),
 	}
 
 	return api.HostGroupsUpdate(zabbix.HostGroups{hostGroup})
