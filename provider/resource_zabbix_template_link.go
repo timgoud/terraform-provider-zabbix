@@ -12,7 +12,6 @@ func resourceZabbixTemplateLink() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceZabbixTemplateLinkCreate,
 		Read:   resourceZabbixTemplateLinkRead,
-		Exists: resourceZabbixTemplateLinkExist,
 		Update: resourceZabbixTemplateLinkUpdate,
 		Delete: resourceZabbixTemplateLinkDelete,
 		Importer: &schema.ResourceImporter{
@@ -37,10 +36,20 @@ func resourceZabbixTemplateLink() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Required: true,
 			},
+			"server_item": &schema.Schema{ // Use to detect change in server item this shouldn't be used by the user
+				Type:     schema.TypeSet,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Optional: true,
+			},
 			"trigger": &schema.Schema{
 				Type:     schema.TypeSet,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Required: true,
+			},
+			"server_trigger": &schema.Schema{
+				Type:     schema.TypeSet,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Optional: true,
 			},
 		},
 	}
@@ -48,7 +57,7 @@ func resourceZabbixTemplateLink() *schema.Resource {
 
 func resourceZabbixTemplateLinkCreate(d *schema.ResourceData, meta interface{}) error {
 	d.SetId(randStringNumber(5))
-	return nil
+	return resourceZabbixTemplateLinkReadLocal(d, meta)
 }
 
 func resourceZabbixTemplateLinkRead(d *schema.ResourceData, meta interface{}) error {
@@ -58,32 +67,79 @@ func resourceZabbixTemplateLinkRead(d *schema.ResourceData, meta interface{}) er
 	if err != nil {
 		return err
 	}
+	localItems := d.Get("item").(*schema.Set).List()
+
+	var serverItems []string
+	for _, item := range itemsTerraform {
+		present := false
+		for _, localItem := range localItems {
+			if item == localItem.(string) {
+				present = true
+				break
+			}
+		}
+
+		if !present {
+			serverItems = append(serverItems, item)
+		}
+	}
+	d.Set("server_item", serverItems)
+
+	triggersTerraform, err := getTerraformTemplateTriggers(d, api)
+	if err != nil {
+		return err
+	}
+	localTriggers := d.Get("trigger").(*schema.Set).List()
+
+	var serverTriggers []string
+	for _, trigger := range triggersTerraform {
+		present := false
+		for _, localTrigger := range localTriggers {
+			if trigger == localTrigger.(string) {
+				present = true
+				break
+			}
+		}
+
+		if !present {
+			serverTriggers = append(serverTriggers, trigger)
+		}
+	}
+	d.Set("server_trigger", serverTriggers)
+
+	return nil
+}
+
+func resourceZabbixTemplateLinkReadLocal(d *schema.ResourceData, meta interface{}) error {
+	api := meta.(*zabbix.API)
+
+	itemsTerraform, err := getTerraformTemplateItems(d, api)
+	if err != nil {
+		return err
+	}
 	d.Set("item", itemsTerraform)
+	d.Set("server_item", []string{})
 
 	triggersTerraform, err := getTerraformTemplateTriggers(d, api)
 	if err != nil {
 		return err
 	}
 	d.Set("trigger", triggersTerraform)
-	return nil
-}
+	d.Set("server_trigger", []string{})
 
-func resourceZabbixTemplateLinkExist(d *schema.ResourceData, meta interface{}) (bool, error) {
-	return true, nil
+	return nil
 }
 
 func resourceZabbixTemplateLinkUpdate(d *schema.ResourceData, meta interface{}) error {
 	api := meta.(*zabbix.API)
 
-	err := updateZabbixTemplateItem(d, api)
-	if err != nil {
+	if err := updateZabbixTemplateItem(d, api); err != nil {
 		return err
 	}
-	err = updateZabbixTemplateTrigger(d, api)
-	if err != nil {
+	if err := updateZabbixTemplateTrigger(d, api); err != nil {
 		return err
 	}
-	return resourceZabbixTemplateLinkRead(d, meta)
+	return resourceZabbixTemplateLinkReadLocal(d, meta)
 }
 
 func resourceZabbixTemplateLinkDelete(d *schema.ResourceData, meta interface{}) error {
@@ -131,68 +187,32 @@ func getTerraformTemplateTriggers(d *schema.ResourceData, api *zabbix.API) ([]st
 }
 
 func updateZabbixTemplateItem(d *schema.ResourceData, api *zabbix.API) error {
-	localItems := d.Get("item").(*schema.Set)
+	if d.HasChange("server_item") {
+		oldI, _ := d.GetChange("server_item")
+		localItemsTerraform := oldI.(*schema.Set).List()
+		var deletedItems []string
 
-	params := zabbix.Params{
-		"output": "extend",
-		"templateids": []string{
-			d.Get("template_id").(string),
-		},
-		"inherited": false,
-	}
-	serverItems, err := api.ItemsGet(params)
-	if err != nil {
-		return err
-	}
-
-	for _, serverItem := range serverItems {
-		exist := false
-
-		for _, localItem := range localItems.List() {
-			if localItem.(string) == serverItem.ItemID {
-				exist = true
-			}
+		for _, item := range localItemsTerraform {
+			deletedItems = append(deletedItems, item.(string))
 		}
-
-		if !exist {
-			err = api.ItemsDelete(zabbix.Items{serverItem})
-			if err != nil {
-				return err
-			}
+		if err := api.ItemsDeleteByIds(deletedItems); err != nil {
+			return err
 		}
 	}
 	return nil
 }
 
 func updateZabbixTemplateTrigger(d *schema.ResourceData, api *zabbix.API) error {
-	localTriggers := d.Get("trigger").(*schema.Set)
+	if d.HasChange("server_trigger") {
+		oldT, _ := d.GetChange("server_trigger")
+		localTriggersTerraform := oldT.(*schema.Set).List()
+		var deletedTriggers []string
 
-	params := zabbix.Params{
-		"output": "extend",
-		"templateids": []string{
-			d.Get("template_id").(string),
-		},
-		"inherited": false,
-	}
-	serverTriggers, err := api.TriggersGet(params)
-	if err != nil {
-		return err
-	}
-
-	for _, serverTrigger := range serverTriggers {
-		exist := false
-
-		for _, localItem := range localTriggers.List() {
-			if localItem.(string) == serverTrigger.TriggerID {
-				exist = true
-			}
+		for _, trigger := range localTriggersTerraform {
+			deletedTriggers = append(deletedTriggers, trigger.(string))
 		}
-
-		if !exist {
-			err = api.TriggersDelete(zabbix.Triggers{serverTrigger})
-			if err != nil {
-				return err
-			}
+		if err := api.TriggersDeleteByIds(deletedTriggers); err != nil {
+			return err
 		}
 	}
 	return nil
