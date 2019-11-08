@@ -10,105 +10,122 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccZabbixTrigger_Basic(t *testing.T) {
-	resourceName := "zabbix_trigger.trigger_test"
+func TestAccZabbixTemplate_Basic(t *testing.T) {
+	resourceName := "zabbix_template.template_test"
 	strID := acctest.RandString(5)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckZabbixTriggerDestroy,
+		CheckDestroy: testAccCheckZabbixTemplateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccZabbixTriggerSimpleConfig(strID),
+				Config: testAccZabbixTemplateSimpleConfig(strID),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "description", fmt.Sprintf("trigger_%s", strID)),
-					resource.TestCheckResourceAttr(resourceName, "expression", fmt.Sprintf("{template_%s:lili.lala.last()}=0", strID)),
-					resource.TestCheckResourceAttr(resourceName, "comment", "trigger_comment"),
-					resource.TestCheckResourceAttr(resourceName, "priority", "5"),
-					resource.TestCheckResourceAttr(resourceName, "status", "1"),
+					resource.TestCheckResourceAttr(resourceName, "description", "test_template_description"),
+					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("template_%s", strID)),
+					resource.TestCheckResourceAttr(resourceName, "host", fmt.Sprintf("template_%s", strID)),
+					resource.TestCheckResourceAttr(resourceName, "groups.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "macro.MACRO1", "value1"),
+					resource.TestCheckResourceAttr(resourceName, "macro.MACRO2", "value2"),
 				),
 			},
 			{
-				Config: testAccZabbixTriggerSimpleConfigUpdate(strID),
+				Config: testAccZabbixTemplateSimpleUpdate(strID),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "description", fmt.Sprintf("update_trigger_%s", strID)),
-					resource.TestCheckResourceAttr(resourceName, "expression", fmt.Sprintf("{template_%s:lili.lala.min(1)}=0", strID)),
-					resource.TestCheckResourceAttr(resourceName, "comment", "update_trigger_comment"),
-					resource.TestCheckResourceAttr(resourceName, "priority", "0"),
-					resource.TestCheckResourceAttr(resourceName, "status", "0"),
-				),
-			},
-			{
-				Config: testAccZabbixTriggerOmitEmpty(strID),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "description", fmt.Sprintf("update_trigger_%s", strID)),
-					resource.TestCheckResourceAttr(resourceName, "expression", fmt.Sprintf("{template_%s:lili.lala.min(1)}=0", strID)),
-					resource.TestCheckResourceAttr(resourceName, "comment", ""),
-					resource.TestCheckResourceAttr(resourceName, "priority", "0"),
-					resource.TestCheckResourceAttr(resourceName, "status", "0"),
-					resource.TestCheckResourceAttr(resourceName, "dependencies.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "description", "update_test_template_description"),
+					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("update_template_%s", strID)),
+					resource.TestCheckResourceAttr(resourceName, "host", fmt.Sprintf("update_template_%s", strID)),
+					resource.TestCheckResourceAttr(resourceName, "groups.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "macro.MACRO1", "update_value1"),
+					resource.TestCheckResourceAttr(resourceName, "macro.UPDATE_MACRO2", "value2"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccZabbixTrigger_BasicMacro(t *testing.T) {
-	resourceName := "zabbix_trigger.trigger_test"
+func TestAccZabbixTemplate_UserMacro(t *testing.T) {
+	resourceName := "zabbix_template.template_test"
 	strID := acctest.RandString(5)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckZabbixTriggerDestroy,
+		CheckDestroy: testAccCheckZabbixTemplateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccZabbixTriggerMacroConfig(strID),
+				Config: testAccZabbixTemplateUserMacro(strID),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "description", fmt.Sprintf("trigger_%s", strID)),
-					resource.TestCheckResourceAttr(resourceName, "expression", fmt.Sprintf("{template_%s:lili.lala.min({$MACRO_TRIGGER})}=0", strID)),
-					resource.TestCheckResourceAttr(resourceName, "comment", "trigger_comment"),
-					resource.TestCheckResourceAttr(resourceName, "priority", "5"),
-					resource.TestCheckResourceAttr(resourceName, "status", "1"),
+					resource.TestCheckResourceAttr(resourceName, "host", fmt.Sprintf("template_%s", strID)),
+					resource.TestCheckResourceAttr(resourceName, "macro.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "macro.MYMACRO1", "value1"),
 				),
 			},
 			{
-				Config: testAccZabbixTriggerMacroConfigUpdate(strID),
+				Config: testAccZabbixTemplateUserMacroAdd(strID),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "description", fmt.Sprintf("update_trigger_%s", strID)),
-					resource.TestCheckResourceAttr(resourceName, "expression", fmt.Sprintf("{template_%s:lili.lala.min({$MACRO_UPDATE})}=0", strID)),
-					resource.TestCheckResourceAttr(resourceName, "comment", "update_trigger_comment"),
-					resource.TestCheckResourceAttr(resourceName, "priority", "3"),
-					resource.TestCheckResourceAttr(resourceName, "status", "0"),
+					resource.TestCheckResourceAttr(resourceName, "host", fmt.Sprintf("template_%s", strID)),
+					resource.TestCheckResourceAttr(resourceName, "macro.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "macro.MYMACRO1", "value1"),
+					resource.TestCheckResourceAttr(resourceName, "macro.MYMACRO2", "value2"),
+				),
+			},
+			{
+				Config: testAccZabbixTemplateUserMacroUpdate(strID),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "host", fmt.Sprintf("template_%s", strID)),
+					resource.TestCheckResourceAttr(resourceName, "macro.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "macro.MYMACRO1", "value3"),
+					resource.TestCheckResourceAttr(resourceName, "macro.MYMACRO3", "value2"),
+				),
+			},
+			{
+				Config: testAccZabbixTemplateUserMacroDelete(strID),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "host", fmt.Sprintf("template_%s", strID)),
+					resource.TestCheckResourceAttr(resourceName, "macro.%", "0"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccZabbixTrigger_BasicDependencies(t *testing.T) {
-	resourceName := "zabbix_trigger.trigger_test_3"
+func TestAccZabbixTemplate_linkedTempalte(t *testing.T) {
+	resource1Name := "zabbix_template.template_test_1"
+	resource2Name := "zabbix_template.template_test_2"
 	strID := acctest.RandString(5)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckZabbixTriggerDestroy,
+		CheckDestroy: testAccCheckZabbixTemplateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccZabbixTriggerDependencies(strID),
+				Config: testAccZabbixTemplateLinkedTemplate(strID),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "description", fmt.Sprintf("trigger_3_%s", strID)),
-					resource.TestCheckResourceAttr(resourceName, "expression", fmt.Sprintf("{template_%s:lili.lala.last()}=0", strID)),
-					resource.TestCheckResourceAttr(resourceName, "dependencies.#", "2"),
+					resource.TestCheckResourceAttr(resource1Name, "host", fmt.Sprintf("template_%s_1", strID)),
+					resource.TestCheckResourceAttr(resource1Name, "groups.#", "1"),
+					resource.TestCheckResourceAttr(resource2Name, "host", fmt.Sprintf("template_%s_2", strID)),
+					resource.TestCheckResourceAttr(resource2Name, "groups.#", "1"),
+					resource.TestCheckResourceAttr(resource2Name, "linked_template.#", "1"),
+				),
+			},
+			{
+				Config: testAccZabbixTemplateLinkedTemplateDelete(strID),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resource1Name, "host", fmt.Sprintf("template_%s_1", strID)),
+					resource.TestCheckResourceAttr(resource1Name, "groups.#", "1"),
+					resource.TestCheckResourceAttr(resource2Name, "host", fmt.Sprintf("template_%s_2", strID)),
+					resource.TestCheckResourceAttr(resource2Name, "groups.#", "1"),
+					resource.TestCheckResourceAttr(resource2Name, "linked_template.#", "0"),
 				),
 			},
 		},
 	})
 }
 
-func testAccCheckZabbixTriggerDestroy(s *terraform.State) error {
+func testAccCheckZabbixTemplateDestroy(s *terraform.State) error {
 	api := testAccProvider.Meta().(*zabbix.API)
 
 	for _, rs := range s.RootModule().Resources {
@@ -116,7 +133,7 @@ func testAccCheckZabbixTriggerDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, err := api.ItemGetByID(rs.Primary.ID)
+		_, err := api.TemplateGetByID(rs.Primary.ID)
 		if err == nil {
 			return fmt.Errorf("Item still exist %s", rs.Primary.ID)
 		}
@@ -127,10 +144,11 @@ func testAccCheckZabbixTriggerDestroy(s *terraform.State) error {
 		}
 	}
 	return nil
+
 }
 
-func testAccZabbixTriggerSimpleConfig(strID string) string {
-	return fmt.Sprintf(`		
+func testAccZabbixTemplateSimpleConfig(strID string) string {
+	return fmt.Sprintf(`
 	resource "zabbix_host_group" "host_group_test" {
 		name = "host_group_%s"
 	}
@@ -138,169 +156,75 @@ func testAccZabbixTriggerSimpleConfig(strID string) string {
 	resource "zabbix_template" "template_test" {
 		host = "template_%s"
 		groups = ["${zabbix_host_group.host_group_test.name}"]
-		description = "description for template"
-	  }
-  
-	resource "zabbix_item" "item_test" {
-		name = "name_%s"
-		key = "lili.lala"
-		delay = "34"
-		description = "description for item"
-		trends = "300"
-		history = "25"
-		delta = 1
-		type = 2
-		host_id = "${zabbix_template.template_test.template_id}"
-	}
-	
-	resource "zabbix_trigger" "trigger_test" {
-		description = "trigger_%s"
-		expression = "{${zabbix_template.template_test.host}:${zabbix_item.item_test.key}.last()}=0"
-		comment = "trigger_comment"
-		priority = 5
-		status = 1
-	}`, strID, strID, strID, strID)
-}
-
-func testAccZabbixTriggerSimpleConfigUpdate(strID string) string {
-	return fmt.Sprintf(`		
-	resource "zabbix_host_group" "host_group_test" {
-		name = "host_group_%s"
-	}
-
-	resource "zabbix_template" "template_test" {
-		host = "template_%s"
-		groups = ["${zabbix_host_group.host_group_test.name}"]
-		description = "description for template"
-	  }
-  
-	resource "zabbix_item" "item_test" {
-		name = "name_%s"
-		key = "lili.lala"
-		delay = "34"
-		description = "description for item"
-		trends = "300"
-		history = "25"
-		delta = 1
-		type = 2
-		host_id = "${zabbix_template.template_test.template_id}"
-	}
-	
-	resource "zabbix_trigger" "trigger_test" {
-		description = "update_trigger_%s"
-		expression = "{${zabbix_template.template_test.host}:${zabbix_item.item_test.key}.min(1)}=0"
-		comment = "update_trigger_comment"
-		priority = 0
-		status = 0
-	}`, strID, strID, strID, strID)
-}
-
-func testAccZabbixTriggerOmitEmpty(strID string) string {
-	return fmt.Sprintf(`		
-	resource "zabbix_host_group" "host_group_test" {
-		name = "host_group_%s"
-	}
-
-	resource "zabbix_template" "template_test" {
-		host = "template_%s"
-		groups = ["${zabbix_host_group.host_group_test.name}"]
-		description = "description for template"
-	  }
-  
-	resource "zabbix_item" "item_test" {
-		name = "name_%s"
-		key = "lili.lala"
-		delay = "34"
-		description = "description for item"
-		trends = "300"
-		history = "25"
-		delta = 1
-		type = 2
-		host_id = "${zabbix_template.template_test.template_id}"
-	}
-	
-	resource "zabbix_trigger" "trigger_test" {
-		description = "update_trigger_%s"
-		expression = "{${zabbix_template.template_test.host}:${zabbix_item.item_test.key}.min(1)}=0"
-	}`, strID, strID, strID, strID)
-}
-
-func testAccZabbixTriggerMacroConfig(strID string) string {
-	return fmt.Sprintf(`		
-	resource "zabbix_host_group" "host_group_test" {
-		name = "host_group_%s"
-	}
-
-	resource "zabbix_template" "template_test" {
-		host = "template_%s"
-		groups = ["${zabbix_host_group.host_group_test.name}"]
-		description = "description for template"
+		name = "template_%s"
+		description = "test_template_description"
 		macro = {
-			MACRO_TRIGGER = "12m",
-			MACRO_UPDATE = "21m",
+		  MACRO1 = "value1"
+		  MACRO2 = "value2"
 		}
-	  }
-  
-	resource "zabbix_item" "item_test" {
-		name = "name_%s"
-		key = "lili.lala"
-		delay = "34"
-		description = "description for item"
-		trends = "300"
-		history = "25"
-		delta = 1
-		type = 2
-		host_id = "${zabbix_template.template_test.template_id}"
 	}
-	
-	resource "zabbix_trigger" "trigger_test" {
-		description = "trigger_%s"
-		expression = "{${zabbix_template.template_test.host}:${zabbix_item.item_test.key}.min({$MACRO_TRIGGER})}=0"
-		comment = "trigger_comment"
-		priority = 5
-		status = 1
-	}`, strID, strID, strID, strID)
+	`, strID, strID, strID)
 }
 
-func testAccZabbixTriggerMacroConfigUpdate(strID string) string {
-	return fmt.Sprintf(`		
+func testAccZabbixTemplateSimpleUpdate(strID string) string {
+	return fmt.Sprintf(`
 	resource "zabbix_host_group" "host_group_test" {
 		name = "host_group_%s"
 	}
 
 	resource "zabbix_template" "template_test" {
-		host = "template_%s"
+		host = "update_template_%s"
 		groups = ["${zabbix_host_group.host_group_test.name}"]
-		description = "description for template"
+		name = "update_template_%s"
+		description = "update_test_template_description"
 		macro = {
-			MACRO_TRIGGER = "12m",
-			MACRO_UPDATE = "21m",
+		  MACRO1 = "update_value1"
+		  UPDATE_MACRO2 = "value2"
 		}
-	  }
-  
-	resource "zabbix_item" "item_test" {
-		name = "name_%s"
-		key = "lili.lala"
-		delay = "34"
-		description = "description for item"
-		trends = "300"
-		history = "25"
-		delta = 1
-		type = 2
-		host_id = "${zabbix_template.template_test.template_id}"
 	}
-	
-	resource "zabbix_trigger" "trigger_test" {
-		description = "update_trigger_%s"
-		expression = "{${zabbix_template.template_test.host}:${zabbix_item.item_test.key}.min({$MACRO_UPDATE})}=0"
-		comment = "update_trigger_comment"
-		priority = 3
-		status = 0
-	}`, strID, strID, strID, strID)
+	`, strID, strID, strID)
 }
 
-func testAccZabbixTriggerDependencies(strID string) string {
-	return fmt.Sprintf(`		
+func testAccZabbixTemplateLinkedTemplate(strID string) string {
+	return fmt.Sprintf(`
+	resource "zabbix_host_group" "host_group_test" {
+		name = "host_group_%s"
+	}
+
+	resource "zabbix_template" "template_test_1" {
+		host = "template_%s_1"
+		groups = ["${zabbix_host_group.host_group_test.name}"]
+	}
+
+	resource "zabbix_template" "template_test_2" {
+		host = "template_%s_2"
+		groups = ["${zabbix_host_group.host_group_test.name}"]
+		linked_template = ["${zabbix_template.template_test_1.id}"]
+	}
+	`, strID, strID, strID)
+}
+
+func testAccZabbixTemplateLinkedTemplateDelete(strID string) string {
+	return fmt.Sprintf(`
+	resource "zabbix_host_group" "host_group_test" {
+		name = "host_group_%s"
+	}
+
+	resource "zabbix_template" "template_test_1" {
+		host = "template_%s_1"
+		groups = ["${zabbix_host_group.host_group_test.name}"]
+	}
+
+	resource "zabbix_template" "template_test_2" {
+		host = "template_%s_2"
+		groups = ["${zabbix_host_group.host_group_test.name}"]
+		linked_template = []
+	}
+	`, strID, strID, strID)
+}
+
+func testAccZabbixTemplateUserMacro(strID string) string {
+	return fmt.Sprintf(`
 	resource "zabbix_host_group" "host_group_test" {
 		name = "host_group_%s"
 	}
@@ -308,37 +232,56 @@ func testAccZabbixTriggerDependencies(strID string) string {
 	resource "zabbix_template" "template_test" {
 		host = "template_%s"
 		groups = ["${zabbix_host_group.host_group_test.name}"]
-		description = "description for template"
-	  }
-  
-	resource "zabbix_item" "item_test" {
-		name = "name_%s"
-		key = "lili.lala"
-		delay = "34"
-		description = "description for item"
-		trends = "300"
-		history = "25"
-		delta = 1
-		type = 2
-		host_id = "${zabbix_template.template_test.template_id}"
+		macro = {
+			MYMACRO1 = "value1"
+		}
 	}
-	
-	resource "zabbix_trigger" "trigger_test" {
-		description = "trigger_%s"
-		expression = "{${zabbix_template.template_test.host}:${zabbix_item.item_test.key}.last()}=0"
+	`, strID, strID)
+}
+
+func testAccZabbixTemplateUserMacroAdd(strID string) string {
+	return fmt.Sprintf(`
+	resource "zabbix_host_group" "host_group_test" {
+		name = "host_group_%s"
 	}
 
-	resource "zabbix_trigger" "trigger_test_2" {
-		description = "trigger_2_%s"
-		expression = "{${zabbix_template.template_test.host}:${zabbix_item.item_test.key}.last()}=0"
+	resource "zabbix_template" "template_test" {
+		host = "template_%s"
+		groups = ["${zabbix_host_group.host_group_test.name}"]
+		macro = {
+			MYMACRO1 = "value1"
+			MYMACRO2 = "value2"
+		}
 	}
-	
-	resource "zabbix_trigger" "trigger_test_3" {
-		description = "trigger_3_%s"
-		expression = "{${zabbix_template.template_test.host}:${zabbix_item.item_test.key}.last()}=0"
-		dependencies = [
-			zabbix_trigger.trigger_test.id,
-			zabbix_trigger.trigger_test_2.id,
-		]
-	}`, strID, strID, strID, strID, strID, strID)
+	`, strID, strID)
+}
+
+func testAccZabbixTemplateUserMacroUpdate(strID string) string {
+	return fmt.Sprintf(`
+	resource "zabbix_host_group" "host_group_test" {
+		name = "host_group_%s"
+	}
+
+	resource "zabbix_template" "template_test" {
+		host = "template_%s"
+		groups = ["${zabbix_host_group.host_group_test.name}"]
+		macro = {
+			MYMACRO1 = "value3"
+			MYMACRO3 = "value2"
+		}
+	}
+	`, strID, strID)
+}
+
+func testAccZabbixTemplateUserMacroDelete(strID string) string {
+	return fmt.Sprintf(`
+	resource "zabbix_host_group" "host_group_test" {
+		name = "host_group_%s"
+	}
+
+	resource "zabbix_template" "template_test" {
+		host = "template_%s"
+		groups = ["${zabbix_host_group.host_group_test.name}"]
+	}
+	`, strID, strID)
 }
