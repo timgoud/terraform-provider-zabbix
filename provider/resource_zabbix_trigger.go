@@ -163,7 +163,7 @@ func resourceZabbixTriggerDelete(d *schema.ResourceData, meta interface{}) error
 		"parentTemplateids": trigger.TriggerParent[0].HostID,
 	})
 
-	triggerids, err := api.TriggersDeleteNoError([]string{d.Id()})
+	triggerids, err := api.TriggersDeleteID([]string{d.Id()})
 	if err != nil {
 		return fmt.Errorf("%s, with trigger %s", err.Error(), d.Id())
 	}
