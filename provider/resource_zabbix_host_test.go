@@ -31,7 +31,7 @@ func TestAccZabbixHost_Basic(t *testing.T) {
 				Config: testAccZabbixHostConfig(host, name, hostGroup),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckZabbixHostExist("zabbix_host.zabbix1", &getHost),
-					testAccCheckZabbixHostAttributes(&getHost, expectedHost, []string{"Linux servers", hostGroup}, []string{"Template ICMP Ping"}),
+					testAccCheckZabbixHostAttributes(&getHost, expectedHost, []string{hostGroup}, []string{}),
 					resource.TestCheckResourceAttr("zabbix_host.zabbix1", "host", host),
 				),
 			},
@@ -68,8 +68,7 @@ func testAccZabbixHostConfig(host string, name string, hostGroup string) string 
 		  		ip = "127.0.0.1"
 				main = true
 			}
-			groups = ["Linux servers", "${zabbix_host_group.zabbix.name}"]
-			templates = ["Template ICMP Ping"]
+			groups = ["${zabbix_host_group.zabbix.name}"]
 	  	}
 	  
 	  	resource "zabbix_host_group" "zabbix" {

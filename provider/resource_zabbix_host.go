@@ -101,7 +101,7 @@ func resourceZabbixHost() *schema.Resource {
 			"templates": &schema.Schema{
 				Type:     schema.TypeSet,
 				Elem:     &schema.Schema{Type: schema.TypeString},
-				Required: true,
+				Optional: true,
 			},
 		},
 	}
