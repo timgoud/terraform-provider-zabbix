@@ -2,6 +2,7 @@ package provider
 
 import (
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/claranet/go-zabbix-api"
@@ -12,6 +13,7 @@ func resourceZabbixTemplateLink() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceZabbixTemplateLinkCreate,
 		Read:   resourceZabbixTemplateLinkRead,
+		Exists: resourceZabbixTemplateLinkExist,
 		Update: resourceZabbixTemplateLinkUpdate,
 		Delete: resourceZabbixTemplateLinkDelete,
 		Importer: &schema.ResourceImporter{
@@ -33,23 +35,43 @@ func resourceZabbixTemplateLink() *schema.Resource {
 			},
 			"item": &schema.Schema{
 				Type:     schema.TypeSet,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Required: true,
-			},
-			"server_item": &schema.Schema{ // Use to detect change in server item this shouldn't be used by the user
-				Type:     schema.TypeSet,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem:     schemaTemplateItem(),
 				Optional: true,
 			},
 			"trigger": &schema.Schema{
 				Type:     schema.TypeSet,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem:     schemaTemplateTrigger(),
+				Optional: true,
+			},
+		},
+	}
+}
+
+func schemaTemplateItem() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"local": &schema.Schema{
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"item_id": &schema.Schema{
+				Type:     schema.TypeString,
 				Required: true,
 			},
-			"server_trigger": &schema.Schema{
-				Type:     schema.TypeSet,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Optional: true,
+		},
+	}
+}
+
+func schemaTemplateTrigger() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"local": &schema.Schema{
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"trigger_id": &schema.Schema{
+				Type:     schema.TypeString,
+				Required: true,
 			},
 		},
 	}
@@ -57,60 +79,28 @@ func resourceZabbixTemplateLink() *schema.Resource {
 
 func resourceZabbixTemplateLinkCreate(d *schema.ResourceData, meta interface{}) error {
 	d.SetId(randStringNumber(5))
-	return resourceZabbixTemplateLinkReadLocal(d, meta)
+	return resourceZabbixTemplateLinkReadTrusted(d, meta)
 }
 
 func resourceZabbixTemplateLinkRead(d *schema.ResourceData, meta interface{}) error {
 	api := meta.(*zabbix.API)
 
-	itemsTerraform, err := getTerraformTemplateItems(d, api)
+	itemsTerraform, err := getTerraformTemplateItemsForPlan(d, api)
 	if err != nil {
 		return err
 	}
-	localItems := d.Get("item").(*schema.Set).List()
+	log.Print("Resource zabbix template link read :", itemsTerraform)
+	d.Set("item", itemsTerraform)
 
-	var serverItems []string
-	for _, item := range itemsTerraform {
-		present := false
-		for _, localItem := range localItems {
-			if item == localItem.(string) {
-				present = true
-				break
-			}
-		}
-
-		if !present {
-			serverItems = append(serverItems, item)
-		}
-	}
-	d.Set("server_item", serverItems)
-
-	triggersTerraform, err := getTerraformTemplateTriggers(d, api)
+	triggersTerraform, err := getTerraformTemplateTriggersForPlan(d, api)
 	if err != nil {
 		return err
 	}
-	localTriggers := d.Get("trigger").(*schema.Set).List()
-
-	var serverTriggers []string
-	for _, trigger := range triggersTerraform {
-		present := false
-		for _, localTrigger := range localTriggers {
-			if trigger == localTrigger.(string) {
-				present = true
-				break
-			}
-		}
-
-		if !present {
-			serverTriggers = append(serverTriggers, trigger)
-		}
-	}
-	d.Set("server_trigger", serverTriggers)
-
+	d.Set("trigger", triggersTerraform)
 	return nil
 }
 
-func resourceZabbixTemplateLinkReadLocal(d *schema.ResourceData, meta interface{}) error {
+func resourceZabbixTemplateLinkReadTrusted(d *schema.ResourceData, meta interface{}) error {
 	api := meta.(*zabbix.API)
 
 	itemsTerraform, err := getTerraformTemplateItems(d, api)
@@ -118,35 +108,38 @@ func resourceZabbixTemplateLinkReadLocal(d *schema.ResourceData, meta interface{
 		return err
 	}
 	d.Set("item", itemsTerraform)
-	d.Set("server_item", []string{})
 
 	triggersTerraform, err := getTerraformTemplateTriggers(d, api)
 	if err != nil {
 		return err
 	}
 	d.Set("trigger", triggersTerraform)
-	d.Set("server_trigger", []string{})
-
 	return nil
+}
+
+func resourceZabbixTemplateLinkExist(d *schema.ResourceData, meta interface{}) (bool, error) {
+	return true, nil
 }
 
 func resourceZabbixTemplateLinkUpdate(d *schema.ResourceData, meta interface{}) error {
 	api := meta.(*zabbix.API)
 
-	if err := updateZabbixTemplateItem(d, api); err != nil {
+	err := updateZabbixTemplateItem(d, api)
+	if err != nil {
 		return err
 	}
-	if err := updateZabbixTemplateTrigger(d, api); err != nil {
+	err = updateZabbixTemplateTrigger(d, api)
+	if err != nil {
 		return err
 	}
-	return resourceZabbixTemplateLinkReadLocal(d, meta)
+	return resourceZabbixTemplateLinkReadTrusted(d, meta)
 }
 
 func resourceZabbixTemplateLinkDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func getTerraformTemplateItems(d *schema.ResourceData, api *zabbix.API) ([]string, error) {
+func getTerraformTemplateItemsForPlan(d *schema.ResourceData, api *zabbix.API) ([]interface{}, error) {
 	params := zabbix.Params{
 		"output": "extend",
 		"templateids": []string{
@@ -159,14 +152,59 @@ func getTerraformTemplateItems(d *schema.ResourceData, api *zabbix.API) ([]strin
 		return nil, err
 	}
 
-	itemsTerraform := make([]string, len(items))
-	for i, item := range items {
-		itemsTerraform[i] = item.ItemID
+	itemList := d.Get("item").(*schema.Set).List()
+	itemLocal := make(map[string]bool)
+	var itemsTerraform []interface{}
+
+	for _, item := range itemList {
+		var itemTerraform = make(map[string]interface{})
+		value := item.(map[string]interface{})
+
+		log.Printf("Found local item with id : %s", value["item_id"].(string))
+		itemLocal[value["item_id"].(string)] = true
+		itemTerraform["local"] = true
+		itemTerraform["item_id"] = value["item_id"].(string)
+		itemsTerraform = append(itemsTerraform, itemTerraform)
+	}
+	for _, item := range items {
+		var itemTerraform = make(map[string]interface{})
+
+		if itemLocal[item.ItemID] {
+			continue
+		}
+		log.Printf("Found server item with id : %s", item.ItemID)
+		itemTerraform["local"] = false
+		itemTerraform["item_id"] = item.ItemID
+		itemsTerraform = append(itemsTerraform, itemTerraform)
 	}
 	return itemsTerraform, nil
 }
 
-func getTerraformTemplateTriggers(d *schema.ResourceData, api *zabbix.API) ([]string, error) {
+func getTerraformTemplateItems(d *schema.ResourceData, api *zabbix.API) ([]interface{}, error) {
+	params := zabbix.Params{
+		"output": "extend",
+		"templateids": []string{
+			d.Get("template_id").(string),
+		},
+		"inherited": false,
+	}
+	items, err := api.ItemsGet(params)
+	if err != nil {
+		return nil, err
+	}
+
+	itemsTerraform := make([]interface{}, len(items))
+	for i, item := range items {
+		var itemTerraform = make(map[string]interface{})
+
+		itemTerraform["local"] = true
+		itemTerraform["item_id"] = item.ItemID
+		itemsTerraform[i] = itemTerraform
+	}
+	return itemsTerraform, nil
+}
+
+func getTerraformTemplateTriggersForPlan(d *schema.ResourceData, api *zabbix.API) ([]interface{}, error) {
 	params := zabbix.Params{
 		"output": "extend",
 		"templateids": []string{
@@ -179,40 +217,175 @@ func getTerraformTemplateTriggers(d *schema.ResourceData, api *zabbix.API) ([]st
 		return nil, err
 	}
 
-	TriggersTerraform := make([]string, len(triggers))
-	for i, trigger := range triggers {
-		TriggersTerraform[i] = trigger.TriggerID
+	triggerList := d.Get("trigger").(*schema.Set).List()
+	triggerLocal := make(map[string]bool)
+	var triggersTerraform []interface{}
+	for _, trigger := range triggerList {
+		triggerTerraform := make(map[string]interface{})
+		value := trigger.(map[string]interface{})
+
+		log.Printf("Found local trigger with id : %s", value["trigger_id"].(string))
+		triggerLocal[value["trigger_id"].(string)] = true
+		triggerTerraform["trigger_id"] = value["trigger_id"].(string)
+		triggerTerraform["local"] = true
+		triggersTerraform = append(triggersTerraform, triggerTerraform)
 	}
-	return TriggersTerraform, nil
+	for _, trigger := range triggers {
+		var triggerTerraform = make(map[string]interface{})
+
+		if triggerLocal[trigger.TriggerID] {
+			continue
+		}
+		log.Printf("Found server trigger with id : %s", trigger.TriggerID)
+		triggerTerraform["local"] = false
+		triggerTerraform["trigger_id"] = trigger.TriggerID
+		triggersTerraform = append(triggersTerraform, triggerTerraform)
+	}
+	return triggersTerraform, nil
+}
+
+func getTerraformTemplateTriggers(d *schema.ResourceData, api *zabbix.API) ([]interface{}, error) {
+	params := zabbix.Params{
+		"output": "extend",
+		"templateids": []string{
+			d.Get("template_id").(string),
+		},
+		"inherited": false,
+	}
+	triggers, err := api.TriggersGet(params)
+	if err != nil {
+		return nil, err
+	}
+
+	triggersTerraform := make([]interface{}, len(triggers))
+	for i, trigger := range triggers {
+		var triggerTerraform = make(map[string]interface{})
+
+		triggerTerraform["local"] = true
+		triggerTerraform["trigger_id"] = trigger.TriggerID
+		triggersTerraform[i] = triggerTerraform
+	}
+	return triggersTerraform, nil
 }
 
 func updateZabbixTemplateItem(d *schema.ResourceData, api *zabbix.API) error {
-	if d.HasChange("server_item") {
-		oldI, _ := d.GetChange("server_item")
-		localItemsTerraform := oldI.(*schema.Set).List()
+	if d.HasChange("item") {
+		oldV, newV := d.GetChange("item")
+		oldItems := oldV.(*schema.Set).List()
+		newItems := newV.(*schema.Set).List()
 		var deletedItems []string
+		templatedItems, err := api.ItemsGet(zabbix.Params{
+			"templateids": []string{
+				d.Get("template_id").(string),
+			},
+			"inherited": true,
+		})
 
-		for _, item := range localItemsTerraform {
-			deletedItems = append(deletedItems, item.(string))
-		}
-		if err := api.ItemsDeleteByIds(deletedItems); err != nil {
+		if err != nil {
 			return err
+		}
+		log.Printf("[DEBUG] Found templated item %#v", templatedItems)
+		for _, oldItem := range oldItems {
+			oldItemValue := oldItem.(map[string]interface{})
+			exist := false
+
+			if oldItemValue["local"] == true {
+				continue
+			}
+
+			for _, newItem := range newItems {
+				newItemValue := newItem.(map[string]interface{})
+				if newItemValue["item_id"].(string) == oldItemValue["item_id"].(string) {
+					exist = true
+				}
+			}
+
+			if !exist {
+				templated := false
+
+				for _, templatedItem := range templatedItems {
+					log.Printf("[DEBUG] comparaiting %s %s", templatedItem.ItemID, oldItemValue["item_id"].(string))
+					if templatedItem.ItemID == oldItemValue["item_id"].(string) {
+						log.Printf("they are equal :)")
+						templated = true
+						break
+					}
+				}
+				if !templated {
+					log.Printf("[DEBUG] item %s is not templated", oldItemValue["item_id"].(string))
+					deletedItems = append(deletedItems, oldItemValue["item_id"].(string))
+				}
+			}
+		}
+		if len(deletedItems) > 0 {
+			log.Printf("[DEBUG] template link will delete item with ids : %#v", deletedItems)
+			if err := api.ItemsDeleteByIds(deletedItems); err != nil {
+				return err
+			}
+		} else {
+			log.Printf("[DEBGU] Nothing to delete")
 		}
 	}
 	return nil
 }
 
 func updateZabbixTemplateTrigger(d *schema.ResourceData, api *zabbix.API) error {
-	if d.HasChange("server_trigger") {
-		oldT, _ := d.GetChange("server_trigger")
-		localTriggersTerraform := oldT.(*schema.Set).List()
+	if d.HasChange("trigger") {
+		oldV, newV := d.GetChange("trigger")
+		oldTriggers := oldV.(*schema.Set).List()
+		newTriggers := newV.(*schema.Set).List()
 		var deletedTriggers []string
+		templatedTriggers, err := api.TriggersGet(zabbix.Params{
+			"output": "extend",
+			"templateids": []string{
+				d.Get("template_id").(string),
+			},
+			"inherited": true,
+		})
 
-		for _, trigger := range localTriggersTerraform {
-			deletedTriggers = append(deletedTriggers, trigger.(string))
-		}
-		if err := api.TriggersDeleteByIds(deletedTriggers); err != nil {
+		if err != nil {
 			return err
+		}
+		log.Printf("[DEBUG] found templated trigger %#v", templatedTriggers)
+		for _, oldTrigger := range oldTriggers {
+			oldTriggerValue := oldTrigger.(map[string]interface{})
+			exist := false
+
+			if oldTriggerValue["local"] == true {
+				continue
+			}
+
+			for _, newTrigger := range newTriggers {
+				newTriggerValue := newTrigger.(map[string]interface{})
+				if oldTriggerValue["trigger_id"].(string) == newTriggerValue["trigger_id"].(string) {
+					exist = true
+				}
+			}
+
+			if !exist {
+				templated := false
+
+				for _, templatedTrigger := range templatedTriggers {
+					log.Printf("[DEBUG] comparaiting %s %s", templatedTrigger.TriggerID, oldTriggerValue["trigger_id"].(string))
+					if templatedTrigger.TriggerID == oldTriggerValue["trigger_id"].(string) {
+						log.Printf("they are equal :)")
+						templated = true
+						break
+					}
+				}
+				if !templated {
+					log.Printf("[DEBUG] item %s is not templated", oldTriggerValue["trigger_id"].(string))
+					deletedTriggers = append(deletedTriggers, oldTriggerValue["trigger_id"].(string))
+				}
+			}
+		}
+		if len(deletedTriggers) > 0 {
+			log.Printf("[DEBUG] template link will delete trigger with ids : %#v", deletedTriggers)
+			if err := api.ItemsDeleteByIds(deletedTriggers); err != nil {
+				return err
+			}
+		} else {
+			log.Printf("Nothing to delete")
 		}
 	}
 	return nil

@@ -166,12 +166,12 @@ func testAccZabbixTemplateLinkConfig() string {
 
 		resource "zabbix_template_link" "template_link_test" {
 			template_id = zabbix_template.template_test.id
-			item = [
-				zabbix_item.item_test_0.id,
-			]
-			trigger = [
-				zabbix_trigger.trigger_test_0.id,
-			]
+			item {
+				item_id = zabbix_item.item_test_0.id
+			}
+			trigger {
+				trigger_id = zabbix_trigger.trigger_test_0.id
+			}
 		}
 	`)
 }
@@ -199,10 +199,9 @@ func testAccZabbixTemplateLinkDeleteTrigger() string {
 
 		resource "zabbix_template_link" "template_link_test" {
 			template_id = zabbix_template.template_test.id
-			item = [
-				zabbix_item.item_test_0.id,
-			]
-			trigger = []
+			item {
+				item_id = zabbix_item.item_test_0.id
+			}
 		}
 	`)
 }
@@ -221,8 +220,6 @@ func testAccZabbixTemplateLinkDeleteItem() string {
 		  
 		resource "zabbix_template_link" "template_link_test" {
 			template_id = zabbix_template.template_test.id
-			item = []
-			trigger = []
 		}
 	`)
 }
