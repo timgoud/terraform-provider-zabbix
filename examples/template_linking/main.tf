@@ -46,10 +46,10 @@ resource "zabbix_trigger" "demo_trigger" {
 # This virtual resource is responsible of ensuring no other items are associated to the template
 resource "zabbix_template_link" "demo_template_link" {
   template_id = zabbix_template.demo_template.id
-  item = [
-    zabbix_item.demo_item.id,
-  ]
-  trigger = [
-    zabbix_trigger.demo_trigger.id,
-  ]
+  item {
+    item_id = zabbix_item.demo_item.id
+  }
+  trigger {
+    trigger_id = zabbix_trigger.demo_trigger.id
+  }
 }

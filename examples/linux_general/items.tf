@@ -34,3 +34,11 @@ resource "zabbix_item" "memory_size_pavailable" {
   host_id = zabbix_template.base_linux_general.template_id
 }
 
+resource "zabbix_item" "ssh_server_is_running" {
+  name = "SSH server is running"
+  key = "net.tcp.service[tcp]"
+  delay = 30
+  history = 7
+  trends = 365
+  host_id = zabbix_template.base_linux_network.template_id
+}

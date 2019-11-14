@@ -23,26 +23,86 @@ resource "zabbix_template" "base_linux_general" {
 # This virtual resource is responsible of ensuring no other items are associated to the template
 resource "zabbix_template_link" "base_linux_general_link" {
   template_id = zabbix_template.base_linux_general.id
-  item = [
-    zabbix_item.cpu_load_avg1.id,
-    zabbix_item.cpu_util_idle.id,
-    zabbix_item.cpu_num_online.id,
-    zabbix_item.memory_size_pavailable.id,
+  item {  
+    item_id = zabbix_item.cpu_load_avg1.id
+  }
+  item {  
+    item_id = zabbix_item.cpu_util_idle.id
+  }
+  item {  
+    item_id = zabbix_item.cpu_num_online.id
+  }
+  item {  
+    item_id = zabbix_item.memory_size_pavailable.id
+  }
+  trigger {  
+    trigger_id = zabbix_trigger.cpu_load_disaster.id
+  }
+  trigger {  
+    trigger_id = zabbix_trigger.cpu_load_high.id
+  }
+  trigger {  
+    trigger_id = zabbix_trigger.cpu_load_avg.id
+  }
+  trigger {  
+    trigger_id = zabbix_trigger.cpu_load_warn.id
+  }
+  trigger {  
+    trigger_id = zabbix_trigger.cpu_utilization_disaster.id
+  }
+  trigger {  
+    trigger_id = zabbix_trigger.cpu_utilization_high.id
+  }
+  trigger {  
+    trigger_id = zabbix_trigger.cpu_utilization_avg.id
+  }
+  trigger {  
+    trigger_id = zabbix_trigger.cpu_utilization_warn.id
+  }
+  trigger {  
+    trigger_id = zabbix_trigger.memory_space_disaster.id
+  }
+  trigger {  
+    trigger_id = zabbix_trigger.memory_space_high.id
+  }
+  trigger {  
+    trigger_id = zabbix_trigger.memory_space_avg.id
+  }
+  trigger {  
+    trigger_id = zabbix_trigger.memory_space_warn.id
+  }
+}
+
+resource "zabbix_template" "base_linux_network" {
+  host        = "Base_Linux_Network"
+  groups      = [zabbix_host_group.template_linux.name]
+  description = "Realy interesting"
+}
+
+resource "zabbix_template_link" "base_linux_network_link" {
+  template_id = zabbix_template.base_linux_network.id
+  item {
+    item_id = zabbix_item.ssh_server_is_running.id
+  }
+  trigger {
+    trigger_id = zabbix_trigger.proccess_ssh_server_is_down.id
+  }
+}
+
+resource "zabbix_template" "standart_linux" {
+  host        = "Standart_Linux_General"
+  groups      = [zabbix_host_group.template_linux.name]
+  description = "Realy interesting"
+  linked_template = [
+    zabbix_template.base_linux_general.id,
+    zabbix_template.base_linux_network.id,
   ]
-  trigger = [
-    zabbix_trigger.cpu_load_disaster.id,
-    zabbix_trigger.cpu_load_high.id,
-    zabbix_trigger.cpu_load_avg.id,
-    zabbix_trigger.cpu_load_warn.id,
-    zabbix_trigger.cpu_utilization_disaster.id,
-    zabbix_trigger.cpu_utilization_high.id,
-    zabbix_trigger.cpu_utilization_avg.id,
-    zabbix_trigger.cpu_utilization_warn.id,
-    zabbix_trigger.memory_space_disaster.id,
-    zabbix_trigger.memory_space_high.id,
-    zabbix_trigger.memory_space_avg.id,
-    zabbix_trigger.memory_space_warn.id,
+  depends_on = [# Require to be sure that standart_linux is update after his dependencies
+    zabbix_template_link.base_linux_general_link,
+    zabbix_template_link.base_linux_network_link,
   ]
 }
 
-
+resource "zabbix_template_link" "standart_linux_link" {
+  template_id = zabbix_template.standart_linux.id
+}

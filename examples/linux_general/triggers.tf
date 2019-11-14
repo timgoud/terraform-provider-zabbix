@@ -96,3 +96,9 @@ resource "zabbix_trigger" "memory_space_warn" {
     zabbix_trigger.memory_space_avg.trigger_id,
   ]
 }
+
+resource "zabbix_trigger" "proccess_ssh_server_is_down" {
+  description = "Proccess: SSH server is down"
+  expression = "{${zabbix_template.base_linux_network.host}:${zabbix_item.ssh_server_is_running.key}.last()}=0"
+  priority = 3
+}
