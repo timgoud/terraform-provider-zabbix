@@ -2,8 +2,16 @@
 
 Terraform provider for zabbix that allow you to manage : host, template, trigger and item. 
 
-## Example
-***
+## Informations
+
+Some information about template link  
+We use template link as a way to track template items and triggers. Template link must contains all the id of your local items and triggers otherwise they will be delete during the next apply. 
+
+If you use the template link resource to track template depencencies you should pay attention to always have you local item and trigger declare inside otherwise they will be delete and create in loop
+
+If you have template dependencies you should use the template_id value of the zabbix_template_link resource to link the children template to the parent because sometime if the child template is updated before parent item or trigger it can create error
+
+## Examples
 
 
 ### Host example:
@@ -32,6 +40,12 @@ resource "zabbix_host_group" "zabbix" {
 ### Template example:
 The template link resource is required if you want to track your template item and trigger
 ```hcl
+provider "zabbix" {
+  user = "Admin"
+  password = "zabbix"
+  server_url = "http://localhost/api_jsonrpc.php"
+}
+
 resource "zabbix_host_group" "demo_group" {
   name = "Template demo group"
 }
@@ -54,8 +68,8 @@ resource "zabbix_template_link" "demo_template_link" {
 ### Template with item and trigger example:
 ```hcl
 provider "zabbix" {
-  user       = var.user
-  password   = var.password
+  user = "Admin"
+  password = "zabbix"
   server_url = "http://localhost/api_jsonrpc.php"
 }
 
@@ -104,8 +118,8 @@ resource "zabbix_template_link" "demo_template_link" {
 ### Template dependencies example:
 ```hcl
 provider "zabbix" {
-  user       = var.user
-  password   = var.password
+  user = "Admin"
+  password = "zabbix"
   server_url = "http://localhost/api_jsonrpc.php"
 }
 
