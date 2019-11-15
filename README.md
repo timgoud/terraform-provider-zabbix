@@ -1,20 +1,86 @@
-# Terraform zabbix provider
+Terraform Provider
+==================
 
-Terraform provider for zabbix that allow you to manage : host, template, trigger and item. 
+- Website: https://www.terraform.io
+- [![Gitter chat](https://badges.gitter.im/hashicorp-terraform/Lobby.png)](https://gitter.im/hashicorp-terraform/Lobby)
+- Mailing list: [Google Groups](http://groups.google.com/group/terraform-tool)
 
-## Informations
+<img src="https://cdn.rawgit.com/hashicorp/terraform-website/master/content/source/assets/images/logo-hashicorp.svg" width="600px">
 
-Some information about template link  
-We use template link as a way to track template items and triggers. Template link must contains all the id of your local items and triggers otherwise they will be delete during the next apply. 
+Requirements
+------------
 
-If you use the template link resource to track template depencencies you should pay attention to always have you local item and trigger declare inside otherwise they will be delete and create in loop
+-	[Terraform](https://www.terraform.io/downloads.html) 0.12.x
+-	[Go](https://golang.org/doc/install) 1.12 (to build the provider plugin)
 
-If you have template dependencies you should use the template_id value of the zabbix_template_link resource to link the children template to the parent because sometime if the child template is updated before parent item or trigger it can create error
+Building The Provider
+---------------------
 
-## Examples
+Clone repository to: `$GOPATH/src/github.com/claranet/terraform-provider-zabbix`
 
+```sh
+$ mkdir -p $GOPATH/src/github.com/claranet; cd $GOPATH/src/github.com/claranet
+$ git clone git@github.com:claranet/terraform-provider-zabbix
+```
 
-### Host example:
+Enter the provider directory and build the provider
+
+```sh
+$ cd $GOPATH/src/github.com/claranet/terraform-provider-zabbix
+$ make build
+```
+
+**Note**: For contributions created from forks, the repository should still be cloned under the `$GOPATH/src/github.com/claranet/terraform-provider-zabbix` directory to allow the provided `make` commands to properly run, build, and test this project.
+
+Using the provider
+------------------
+If you're building the provider, follow the instructions to [install it as a plugin.](https://www.terraform.io/docs/plugins/basics.html#installing-a-plugin) After placing it into your plugins directory,  run `terraform init` to initialize it.
+
+Further [usage documentation is available on the Terraform website](https://www.terraform.io/docs/providers/zabbix/index.html).
+
+Developing the Provider
+-----------------------
+
+If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (version 1.11+ is *required*). You'll also need to correctly setup a [GOPATH](http://golang.org/doc/code.html#GOPATH), as well as adding `$GOPATH/bin` to your `$PATH`.
+
+To compile the provider, run `make build`. This will build the provider and put the provider binary in the `$GOPATH/bin` directory.
+
+```sh
+$ make build
+...
+$ $GOPATH/bin/terraform-provider-zabbix
+...
+```
+
+In order to test the provider, you can simply run `make test`.
+
+```sh
+$ make test
+```
+
+In order to run the full suite of Acceptance tests, run `make testacc`.
+
+*Note:* Acceptance tests create real resources, and often cost money to run.
+
+```sh
+$ make testacc
+```
+
+Notes
+-----
+
+### Template linking
+
+Template link is used as a way to track template items and triggers. Template link must contain all the id ofs your local items and triggers otherwise they will be delete during the next apply.
+
+* If you use the template link resource to track template depencencies you should pay attention to always have you local item and trigger declared inside otherwise they will be delete and create in loop.
+* If you have template dependencies you should use the `template_id` value of the `zabbix_template_link` resource to link the children templates to the parent else the child template could be updated before parent item or trigger which lead to error
+
+Examples
+--------
+
+### Host
+
 ```hcl
 provider "zabbix" {
   user = "Admin"
@@ -37,8 +103,11 @@ resource "zabbix_host_group" "zabbix" {
   name = "something"
 }
 ```
-### Template example:
+
+### Template
+
 The template link resource is required if you want to track your template item and trigger
+
 ```hcl
 provider "zabbix" {
   user = "Admin"
@@ -65,7 +134,9 @@ resource "zabbix_template_link" "demo_template_link" {
   template_id = zabbix_template.demo_template.id
 }
 ```
-### Template with item and trigger example:
+
+### Template with item and trigger
+
 ```hcl
 provider "zabbix" {
   user = "Admin"
@@ -115,7 +186,9 @@ resource "zabbix_template_link" "demo_template_link" {
   }
 }
 ```
-### Template dependencies example:
+
+### Template dependencies
+
 ```hcl
 provider "zabbix" {
   user = "Admin"
@@ -148,3 +221,4 @@ resource "zabbix_template_link" "demo_template_2_link" {
   template_id = zabbix_template.template_2.id
 }
 ```
+
