@@ -43,7 +43,7 @@ func resourceZabbixHostGroupCreate(d *schema.ResourceData, meta interface{}) err
 
 	groupID := groups[0].GroupID
 
-	log.Printf("Created host group, id is %s", groupID)
+	log.Printf("[DEBUG] Created host group, id is %s", groupID)
 
 	d.Set("group_id", groupID)
 	d.SetId(groupID)
@@ -54,7 +54,7 @@ func resourceZabbixHostGroupCreate(d *schema.ResourceData, meta interface{}) err
 func resourceZabbixHostGroupRead(d *schema.ResourceData, meta interface{}) error {
 	api := meta.(*zabbix.API)
 
-	log.Printf("Will read host group with id %s", d.Id())
+	log.Printf("[DEBUG] Will read host group with id %s", d.Id())
 
 	group, err := api.HostGroupGetByID(d.Id())
 

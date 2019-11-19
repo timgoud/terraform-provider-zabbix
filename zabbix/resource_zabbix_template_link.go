@@ -304,15 +304,12 @@ func updateZabbixTemplateItem(d *schema.ResourceData, api *zabbix.API) error {
 				templated := false
 
 				for _, templatedItem := range templatedItems {
-					log.Printf("[DEBUG] comparaiting %s %s", templatedItem.ItemID, oldItemValue["item_id"].(string))
 					if templatedItem.ItemID == oldItemValue["item_id"].(string) {
-						log.Printf("they are equal :)")
 						templated = true
 						break
 					}
 				}
 				if !templated {
-					log.Printf("[DEBUG] item %s is not templated", oldItemValue["item_id"].(string))
 					deletedItems = append(deletedItems, oldItemValue["item_id"].(string))
 				}
 			}
@@ -322,8 +319,6 @@ func updateZabbixTemplateItem(d *schema.ResourceData, api *zabbix.API) error {
 			if err := api.ItemsDeleteByIds(deletedItems); err != nil {
 				return err
 			}
-		} else {
-			log.Printf("[DEBGU] Nothing to delete")
 		}
 	}
 	return nil
@@ -366,15 +361,12 @@ func updateZabbixTemplateTrigger(d *schema.ResourceData, api *zabbix.API) error 
 				templated := false
 
 				for _, templatedTrigger := range templatedTriggers {
-					log.Printf("[DEBUG] comparaiting %s %s", templatedTrigger.TriggerID, oldTriggerValue["trigger_id"].(string))
 					if templatedTrigger.TriggerID == oldTriggerValue["trigger_id"].(string) {
-						log.Printf("they are equal :)")
 						templated = true
 						break
 					}
 				}
 				if !templated {
-					log.Printf("[DEBUG] item %s is not templated", oldTriggerValue["trigger_id"].(string))
 					deletedTriggers = append(deletedTriggers, oldTriggerValue["trigger_id"].(string))
 				}
 			}
@@ -384,8 +376,6 @@ func updateZabbixTemplateTrigger(d *schema.ResourceData, api *zabbix.API) error 
 			if err := api.ItemsDeleteByIds(deletedTriggers); err != nil {
 				return err
 			}
-		} else {
-			log.Printf("Nothing to delete")
 		}
 	}
 	return nil

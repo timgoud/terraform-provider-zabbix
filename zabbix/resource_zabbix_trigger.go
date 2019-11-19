@@ -103,7 +103,7 @@ func resourceZabbixTriggerRead(d *schema.ResourceData, meta interface{}) error {
 	trigger := res[0]
 	err = getTriggerExpression(&trigger, api)
 	d.Set("trigger_id", trigger.TriggerID)
-	log.Printf("trigger expressiob %s", trigger.Expression)
+	log.Printf("[DEBUG] trigger expression: %s", trigger.Expression)
 	d.Set("description", trigger.Description)
 	d.Set("expression", trigger.Expression)
 	d.Set("comment", trigger.Comments)

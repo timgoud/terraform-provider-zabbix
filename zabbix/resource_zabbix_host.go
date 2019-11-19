@@ -163,7 +163,7 @@ func getHostGroups(d *schema.ResourceData, api *zabbix.API) (zabbix.HostGroupIDs
 		setHostGroups[i] = g.(string)
 	}
 
-	log.Printf("Groups %v\n", setHostGroups)
+	log.Printf("[DEBUG] Groups %v\n", setHostGroups)
 
 	groupParams := zabbix.Params{
 		"output": "extend",
@@ -179,7 +179,7 @@ func getHostGroups(d *schema.ResourceData, api *zabbix.API) (zabbix.HostGroupIDs
 	}
 
 	if len(groups) < configGroups.Len() {
-		log.Printf("Not all of the specified groups were found on zabbix server")
+		log.Printf("[DEBUG] Not all of the specified groups were found on zabbix server")
 
 		for _, n := range configGroups.List() {
 			found := false
@@ -194,7 +194,7 @@ func getHostGroups(d *schema.ResourceData, api *zabbix.API) (zabbix.HostGroupIDs
 			if !found {
 				return nil, fmt.Errorf("Host group %s doesnt exist in zabbix server", n)
 			}
-			log.Printf("%s exists on zabbix server", n)
+			log.Printf("[DEBUG] %s exists on zabbix server", n)
 		}
 	}
 
@@ -221,7 +221,7 @@ func getTemplates(d *schema.ResourceData, api *zabbix.API) (zabbix.TemplateIDs, 
 		templateNames[i] = g.(string)
 	}
 
-	log.Printf("Templates %v\n", templateNames)
+	log.Printf("[DEBUG] Templates %v\n", templateNames)
 
 	groupParams := zabbix.Params{
 		"output": "extend",
@@ -237,7 +237,7 @@ func getTemplates(d *schema.ResourceData, api *zabbix.API) (zabbix.TemplateIDs, 
 	}
 
 	if len(templates) < configTemplates.Len() {
-		log.Printf("Not all of the specified templates were found on zabbix server")
+		log.Printf("[DEBUG] Not all of the specified templates were found on zabbix server")
 
 		for _, n := range configTemplates.List() {
 			found := false
@@ -252,7 +252,7 @@ func getTemplates(d *schema.ResourceData, api *zabbix.API) (zabbix.TemplateIDs, 
 			if !found {
 				return nil, fmt.Errorf("Template %s doesnt exist in zabbix server", n)
 			}
-			log.Printf("Template %s exists on zabbix server", n)
+			log.Printf("[DEBUG] Template %s exists on zabbix server", n)
 		}
 	}
 
@@ -322,7 +322,7 @@ func resourceZabbixHostCreate(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	log.Printf("Created host id is %s", hosts[0].HostID)
+	log.Printf("[DEBUG] Created host id is %s", hosts[0].HostID)
 
 	d.Set("host_id", hosts[0].HostID)
 	d.SetId(hosts[0].HostID)
@@ -333,7 +333,7 @@ func resourceZabbixHostCreate(d *schema.ResourceData, meta interface{}) error {
 func resourceZabbixHostRead(d *schema.ResourceData, meta interface{}) error {
 	api := meta.(*zabbix.API)
 
-	log.Printf("Will read host with id %s", d.Get("host_id").(string))
+	log.Printf("[DEBUG] Will read host with id %s", d.Get("host_id").(string))
 
 	host, err := api.HostGetByID(d.Get("host_id").(string))
 
@@ -341,7 +341,7 @@ func resourceZabbixHostRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	log.Printf("Host name is %s", host.Name)
+	log.Printf("[DEBUG] Host name is %s", host.Name)
 
 	d.Set("host", host.Host)
 	d.Set("name", host.Name)
@@ -364,7 +364,6 @@ func resourceZabbixHostRead(d *schema.ResourceData, meta interface{}) error {
 	templateNames := make([]string, len(templates))
 
 	for i, t := range templates {
-		log.Printf("%d i", i)
 		templateNames[i] = t.Host
 	}
 
