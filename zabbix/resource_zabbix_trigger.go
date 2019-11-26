@@ -163,10 +163,10 @@ func resourceZabbixTriggerDelete(d *schema.ResourceData, meta interface{}) error
 
 	templates, err := api.TemplatesGet(zabbix.Params{
 		"output":            "extend",
-		"parentTemplateids": trigger.TriggerParent[0].HostID,
+		"parentTemplateids": trigger.ParentHosts[0].HostID,
 	})
 
-	triggerids, err := api.TriggersDeleteID([]string{d.Id()})
+	triggerids, err := api.TriggersDeleteIDs([]string{d.Id()})
 	if err != nil {
 		return fmt.Errorf("%s, with trigger %s", err.Error(), d.Id())
 	}

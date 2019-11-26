@@ -244,7 +244,7 @@ func resourceZabbixItemDelete(d *schema.ResourceData, meta interface{}) error {
 		"parentTemplateids": item.ItemParent[0].HostID,
 	})
 
-	itemids, err := api.ItemsDeleteID([]string{d.Id()})
+	itemids, err := api.ItemsDeleteIDs([]string{d.Id()})
 	if err != nil {
 		return err
 	}
