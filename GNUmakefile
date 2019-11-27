@@ -1,4 +1,4 @@
-TEST?="./provider"
+TEST?="./zabbix"
 PKG_NAME=zabbix
 DIR=~/.terraform.d/plugins
 
