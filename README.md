@@ -1,4 +1,4 @@
-Terraform Provider
+Terraform Provider for Zabbix
 ==================
 
 - Website: https://www.terraform.io
@@ -221,4 +221,3 @@ resource "zabbix_template_link" "demo_template_2_link" {
   template_id = zabbix_template.template_2.id
 }
 ```
-
