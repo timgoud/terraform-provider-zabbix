@@ -1,4 +1,4 @@
-TEST?=$$(go list ./... |grep -v 'vendor')
+TEST?="./provider"
 PKG_NAME=zabbix
 DIR=~/.terraform.d/plugins
 
@@ -23,4 +23,3 @@ test:
 
 testacc:
 	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout 120m
-
