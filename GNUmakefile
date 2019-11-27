@@ -10,10 +10,10 @@ build:
 
 install:
 	mkdir -vp $(DIR)
-	go build -o $(DIR)/terraform-provider-datadog
+	go build -o $(DIR)/terraform-provider-zabbix
 
 uninstall:
-	@rm -vf $(DIR)/terraform-provider-datadog
+	@rm -vf $(DIR)/terraform-provider-zabbix
 
 
 test:
