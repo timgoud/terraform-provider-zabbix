@@ -6,16 +6,16 @@ import (
 	"strings"
 
 	"github.com/claranet/go-zabbix-api"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceZabbixlldRule() *schema.Resource {
+func resourceZabbixLLDRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceZabbixlldRuleCreate,
-		Read:   resourceZabbixlldRuleRead,
-		Exists: resourceZabbixlldRuleExist,
-		Update: resourceZabbixlldRuleUpdate,
-		Delete: resourceZabbixlldRuleDelete,
+		Create: resourceZabbixLLDRuleCreate,
+		Read:   resourceZabbixLLDRuleRead,
+		Exists: resourceZabbixLLDRuleExists,
+		Update: resourceZabbixLLDRuleUpdate,
+		Delete: resourceZabbixLLDRuleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -46,19 +46,19 @@ func resourceZabbixlldRule() *schema.Resource {
 			"filter": &schema.Schema{
 				Type:     schema.TypeSet,
 				MaxItems: 1,
-				Elem:     resourcelldRuleFilter(),
+				Elem:     schemaLLDRuleFilter(),
 				Required: true,
 			},
 		},
 	}
 }
 
-func resourcelldRuleFilter() *schema.Resource {
+func schemaLLDRuleFilter() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"condition": &schema.Schema{
 				Type:     schema.TypeSet,
-				Elem:     resourcelldRuleFilterCondition(),
+				Elem:     schemaLLDRuleFilterCondition(),
 				Required: true,
 			},
 			"eval_type": &schema.Schema{
@@ -74,7 +74,7 @@ func resourcelldRuleFilter() *schema.Resource {
 	}
 }
 
-func resourcelldRuleFilterCondition() *schema.Resource {
+func schemaLLDRuleFilterCondition() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"macro": &schema.Schema{
@@ -94,9 +94,9 @@ func resourcelldRuleFilterCondition() *schema.Resource {
 	}
 }
 
-func resourceZabbixlldRuleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceZabbixLLDRuleCreate(d *schema.ResourceData, meta interface{}) error {
 	api := meta.(*zabbix.API)
-	rule := createlldRuleObject(d)
+	rule := createLLDRuleObject(d)
 	rules := zabbix.LLDRules{rule}
 
 	err := api.DiscoveryRulesCreate(rules)
@@ -104,10 +104,10 @@ func resourceZabbixlldRuleCreate(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 	d.SetId(rules[0].ItemID)
-	return resourceZabbixlldRuleRead(d, meta)
+	return resourceZabbixLLDRuleRead(d, meta)
 }
 
-func resourceZabbixlldRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceZabbixLLDRuleRead(d *schema.ResourceData, meta interface{}) error {
 	api := meta.(*zabbix.API)
 	params := zabbix.Params{
 		"itemids":      d.Id(),
@@ -151,7 +151,7 @@ func resourceZabbixlldRuleRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceZabbixlldRuleExist(d *schema.ResourceData, meta interface{}) (bool, error) {
+func resourceZabbixLLDRuleExists(d *schema.ResourceData, meta interface{}) (bool, error) {
 	api := meta.(*zabbix.API)
 
 	_, err := api.DiscoveryRulesGetByID(d.Id())
@@ -165,9 +165,9 @@ func resourceZabbixlldRuleExist(d *schema.ResourceData, meta interface{}) (bool,
 	return true, nil
 }
 
-func resourceZabbixlldRuleUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceZabbixLLDRuleUpdate(d *schema.ResourceData, meta interface{}) error {
 	api := meta.(*zabbix.API)
-	rule := createlldRuleObject(d)
+	rule := createLLDRuleObject(d)
 	rule.ItemID = d.Id()
 	rules := zabbix.LLDRules{rule}
 
@@ -175,29 +175,29 @@ func resourceZabbixlldRuleUpdate(d *schema.ResourceData, meta interface{}) error
 	if err != nil {
 		return err
 	}
-	return resourceZabbixlldRuleRead(d, meta)
+	return resourceZabbixLLDRuleRead(d, meta)
 }
 
-func resourceZabbixlldRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceZabbixLLDRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	api := meta.(*zabbix.API)
 
 	err := api.DiscoveryRulesDeletesByIDs([]string{d.Id()})
 	return err
 }
 
-func createlldRuleObject(d *schema.ResourceData) zabbix.LLDRule {
+func createLLDRuleObject(d *schema.ResourceData) zabbix.LLDRule {
 	return zabbix.LLDRule{
-		Delay:       d.Get("delay").(int),
+		Delay:       d.Get("delay").(string),
 		HostID:      d.Get("host_id").(string),
 		InterfaceID: d.Get("interface_id").(string),
 		Key:         d.Get("key").(string),
 		Name:        d.Get("name").(string),
 		Type:        zabbix.ItemType(d.Get("type").(int)),
-		Filter:      createlldRuleConditionObject(d),
+		Filter:      createLLDRuleConditionObject(d),
 	}
 }
 
-func createlldRuleConditionObject(d *schema.ResourceData) zabbix.LLDRuleFilter {
+func createLLDRuleConditionObject(d *schema.ResourceData) zabbix.LLDRuleFilter {
 	filters := d.Get("filter").(*schema.Set)
 	filter := filters.List()[0].(map[string]interface{})
 	conditions := filter["condition"].(*schema.Set)

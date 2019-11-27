@@ -32,6 +32,11 @@ func resourceZabbixTemplateLink() *schema.Resource {
 				Elem:     schemaTemplateTrigger(),
 				Optional: true,
 			},
+			"lld_rule": &schema.Schema{
+				Type:     schema.TypeSet,
+				Elem:     schemaTemplatelldRule(),
+				Optional: true,
+			},
 		},
 	}
 }
@@ -59,6 +64,21 @@ func schemaTemplateTrigger() *schema.Resource {
 				Computed: true,
 			},
 			"trigger_id": &schema.Schema{
+				Type:     schema.TypeString,
+				Required: true,
+			},
+		},
+	}
+}
+
+func schemaTemplatelldRule() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"local": &schema.Schema{
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"lld_rule_id": &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -157,6 +177,30 @@ func getTerraformTemplateTriggers(d *schema.ResourceData, api *zabbix.API) ([]in
 		triggersTerraform[i] = triggerTerraform
 	}
 	return triggersTerraform, nil
+}
+
+func getTerraformTemplatelldRules(d *schema.ResourceData, api *zabbix.API) ([]interface{}, error) {
+	params := zabbix.Params{
+		"output": "extend",
+		"templateids": []string{
+			d.Get("template_id").(string),
+		},
+		"inherited": false,
+	}
+	lldRules, err := api.DiscoveryRulesGet(params)
+	if err != nil {
+		return nil, err
+	}
+
+	lldRulesTerraform := make([]interface{}, len(lldRules))
+	for i, lldRule := range lldRules {
+		var lldRuleTerraform = make(map[string]interface{})
+
+		lldRuleTerraform["local"] = true
+		lldRuleTerraform["lld_rule_id"] = lldRule.ItemID
+		lldRulesTerraform[i] = lldRuleTerraform
+	}
+	return lldRulesTerraform, nil
 }
 
 func updateZabbixTemplateItem(d *schema.ResourceData, api *zabbix.API) error {
@@ -265,6 +309,63 @@ func updateZabbixTemplateTrigger(d *schema.ResourceData, api *zabbix.API) error 
 		if len(deletedTriggers) > 0 {
 			log.Printf("[DEBUG] template link will delete trigger with ids : %#v", deletedTriggers)
 			if err := api.ItemsDeleteByIds(deletedTriggers); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func updateZabbixTemplateDiscoveryRule(d *schema.ResourceData, api *zabbix.API) error {
+	if d.HasChange("lld_dule") {
+		oldV, newV := d.GetChange("lld_rule")
+		oldlldRules := oldV.(*schema.Set).List()
+		newlldRules := newV.(*schema.Set).List()
+		var deletedlldRules []string
+		templatedlldRules, err := api.DiscoveryRulesGet(zabbix.Params{
+			"output": "extend",
+			"templateids": []string{
+				d.Get("template_id").(string),
+			},
+			"inherited": true,
+		})
+
+		if err != nil {
+			return err
+		}
+		log.Printf("[DEBUG] found templated lldRule %#v", templatedlldRules)
+		for _, oldlldRule := range oldlldRules {
+			oldlldRuleValue := oldlldRule.(map[string]interface{})
+			exist := false
+
+			if oldlldRuleValue["local"] == true {
+				continue
+			}
+
+			for _, newlldRule := range newlldRules {
+				newlldRuleValue := newlldRule.(map[string]interface{})
+				if oldlldRuleValue["lld_rule_id"].(string) == newlldRuleValue["lld_rule_id"].(string) {
+					exist = true
+				}
+			}
+
+			if !exist {
+				templated := false
+
+				for _, templatedlldRule := range templatedlldRules {
+					if templatedlldRule.ItemID == oldlldRuleValue["lld_rule_id"].(string) {
+						templated = true
+						break
+					}
+				}
+				if !templated {
+					deletedlldRules = append(deletedlldRules, oldlldRuleValue["lld_rule_id"].(string))
+				}
+			}
+		}
+		if len(deletedlldRules) > 0 {
+			log.Printf("[DEBUG] template link will delete lldRule with ids : %#v", deletedlldRules)
+			if err := api.DiscoveryRulesDeletesByIDs(deletedlldRules); err != nil {
 				return err
 			}
 		}
