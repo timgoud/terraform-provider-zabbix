@@ -197,8 +197,8 @@ func resourceZabbixItemExist(d *schema.ResourceData, meta interface{}) (bool, er
 
 	_, err := api.ItemGetByID(d.Id())
 	if err != nil {
-		log.Printf("Item exist error : %s", err.Error())
 		if strings.Contains(err.Error(), "Expected exactly one result") {
+			log.Printf("Item with id %s doesn't exist", d.Id())
 			return false, nil
 		}
 		return false, err
