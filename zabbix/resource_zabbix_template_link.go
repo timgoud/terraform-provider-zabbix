@@ -105,6 +105,12 @@ func resourceZabbixTemplateLinkRead(d *schema.ResourceData, meta interface{}) er
 	}
 	d.Set("trigger", triggersTerraform)
 
+	lldRulesTerraform, err := getTerraformTemplateLLDRules(d, api)
+	if err != nil {
+		return err
+	}
+	d.Set("lld_rule", lldRulesTerraform)
+
 	d.SetId(d.Get("template_id").(string))
 	return nil
 }
@@ -121,6 +127,10 @@ func resourceZabbixTemplateLinkUpdate(d *schema.ResourceData, meta interface{}) 
 		return err
 	}
 	err = updateZabbixTemplateTrigger(d, api)
+	if err != nil {
+		return err
+	}
+	err = updateZabbixTemplateDiscoveryRule(d, api)
 	if err != nil {
 		return err
 	}
@@ -179,7 +189,7 @@ func getTerraformTemplateTriggers(d *schema.ResourceData, api *zabbix.API) ([]in
 	return triggersTerraform, nil
 }
 
-func getTerraformTemplatelldRules(d *schema.ResourceData, api *zabbix.API) ([]interface{}, error) {
+func getTerraformTemplateLLDRules(d *schema.ResourceData, api *zabbix.API) ([]interface{}, error) {
 	params := zabbix.Params{
 		"output": "extend",
 		"templateids": []string{
@@ -251,7 +261,8 @@ func updateZabbixTemplateItem(d *schema.ResourceData, api *zabbix.API) error {
 		}
 		if len(deletedItems) > 0 {
 			log.Printf("[DEBUG] template link will delete item with ids : %#v", deletedItems)
-			if err := api.ItemsDeleteByIds(deletedItems); err != nil {
+			_, err := api.ItemsDeleteIDs(deletedItems)
+			if err != nil {
 				return err
 			}
 		}
@@ -308,7 +319,8 @@ func updateZabbixTemplateTrigger(d *schema.ResourceData, api *zabbix.API) error 
 		}
 		if len(deletedTriggers) > 0 {
 			log.Printf("[DEBUG] template link will delete trigger with ids : %#v", deletedTriggers)
-			if err := api.ItemsDeleteByIds(deletedTriggers); err != nil {
+			_, err := api.TriggersDeleteIDs(deletedTriggers)
+			if err != nil {
 				return err
 			}
 		}
@@ -317,7 +329,7 @@ func updateZabbixTemplateTrigger(d *schema.ResourceData, api *zabbix.API) error 
 }
 
 func updateZabbixTemplateDiscoveryRule(d *schema.ResourceData, api *zabbix.API) error {
-	if d.HasChange("lld_dule") {
+	if d.HasChange("lld_rule") {
 		oldV, newV := d.GetChange("lld_rule")
 		oldlldRules := oldV.(*schema.Set).List()
 		newlldRules := newV.(*schema.Set).List()
@@ -365,7 +377,8 @@ func updateZabbixTemplateDiscoveryRule(d *schema.ResourceData, api *zabbix.API) 
 		}
 		if len(deletedlldRules) > 0 {
 			log.Printf("[DEBUG] template link will delete lldRule with ids : %#v", deletedlldRules)
-			if err := api.DiscoveryRulesDeletesByIDs(deletedlldRules); err != nil {
+			_, err := api.DiscoveryRulesDeletesIDs(deletedlldRules)
+			if err != nil {
 				return err
 			}
 		}
