@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/claranet/go-zabbix-api"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func resourceZabbixItemPrototype() *schema.Resource {
@@ -139,7 +139,7 @@ func createItemPrototypeObject(d *schema.ResourceData, api *zabbix.API) (*zabbix
 
 	item := zabbix.ItemPrototype{
 		ItemID:       d.Get("item_id").(string),
-		Delay:        d.Get("delay").(int),
+		Delay:        d.Get("delay").(string),
 		HostID:       d.Get("host_id").(string),
 		InterfaceID:  d.Get("interface_id").(string),
 		Key:          d.Get("key").(string),
@@ -150,8 +150,8 @@ func createItemPrototypeObject(d *schema.ResourceData, api *zabbix.API) (*zabbix
 		DataType:     zabbix.DataType(d.Get("data_type").(int)),
 		Delta:        zabbix.DeltaType(d.Get("delta").(int)),
 		Description:  d.Get("description").(string),
-		History:      d.Get("history").(int),
-		Trends:       d.Get("trends").(int),
+		History:      d.Get("history").(string),
+		Trends:       d.Get("trends").(string),
 		TrapperHosts: d.Get("trapper_host").(string),
 		Status:       d.Get("status").(int),
 	}
@@ -219,8 +219,8 @@ func resourceZabbixItemPrototypeExist(d *schema.ResourceData, meta interface{}) 
 
 	_, err := api.ItemPrototypeGetByID(d.Id())
 	if err != nil {
-		log.Printf("Item exist error : %s", err.Error())
 		if strings.Contains(err.Error(), "Expected exactly one result") {
+			log.Printf("Item prototype with id %s doesn't exist", d.Id())
 			return false, nil
 		}
 		return false, err
@@ -249,31 +249,39 @@ func resourceZabbixItemPrototypeUpdate(d *schema.ResourceData, meta interface{})
 func resourceZabbixItemPrototypeDelete(d *schema.ResourceData, meta interface{}) error {
 	api := meta.(*zabbix.API)
 
-	// items, err := api.ItemPrototypesGet(zabbix.Params{
-	// 	"output":      "extend",
-	// 	"selectHosts": "extend",
-	// 	"itemids":     d.Id(),
-	// })
-	// if err != nil {
-	// 	return fmt.Errorf("%s, with item %s", err.Error(), d.Id())
-	// }
-	// if len(items) != 1 {
-	// 	return fmt.Errorf("Expected one item and got %d items", len(items))
-	// }
-	// item := items[0]
+	items, err := api.ItemPrototypesGet(zabbix.Params{
+		"output":      "extend",
+		"selectHosts": "extend",
+		"itemids":     d.Id(),
+	})
+	if err != nil {
+		return fmt.Errorf("%s, with item %s", err.Error(), d.Id())
+	}
+	if len(items) != 1 {
+		return fmt.Errorf("Expected one item and got %d items", len(items))
+	}
+	item := items[0]
 
-	// templates, err := api.TemplatesGet(zabbix.Params{
-	// 	"ouput":             "extend",
-	// 	"parentTemplateids": item.ItemParent[0].HostID,
-	// })
+	templates, err := api.TemplatesGet(zabbix.Params{
+		"ouput":             "extend",
+		"selectHosts":       "extend",
+		"parentTemplateids": item.Hosts[0].HostID,
+	})
+	if err != nil {
+		return err
+	}
 
-	// itemids, err := api.ItemPrototypesDeleteIDs([]string{d.Id()})
-	// if err != nil {
-	// 	return err
-	// }
-	// if len(itemids) != len(templates)+1 {
-	// 	return fmt.Errorf("Expected to delete %d item and %d were delete", len(templates)+1, len(itemids))
-	// }
-	_, err := api.ItemPrototypesDeleteIDs([]string{d.Id()})
+	itemNB := 1
+	for _, template := range templates {
+		itemNB += len(template.LinkedHosts) + 1
+	}
+
+	itemids, err := api.ItemPrototypesDeleteIDs([]string{d.Id()})
+	if err != nil {
+		return err
+	}
+	if len(itemids) != itemNB {
+		return fmt.Errorf("Expected to delete %d item and %d were delete", itemNB, len(itemids))
+	}
 	return err
 }

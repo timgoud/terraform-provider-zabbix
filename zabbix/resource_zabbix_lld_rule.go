@@ -21,7 +21,7 @@ func resourceZabbixLLDRule() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"delay": &schema.Schema{
-				Type:     schema.TypeInt,
+				Type:     schema.TypeString,
 				Required: true,
 			},
 			"host_id": &schema.Schema{
@@ -156,8 +156,8 @@ func resourceZabbixLLDRuleExists(d *schema.ResourceData, meta interface{}) (bool
 
 	_, err := api.DiscoveryRulesGetByID(d.Id())
 	if err != nil {
-		log.Printf("lld rule exist error : %s", err.Error())
 		if strings.Contains(err.Error(), "Expected exactly one result") {
+			log.Printf("LLD rule with id %s doesn't exist", d.Id())
 			return false, nil
 		}
 		return false, err

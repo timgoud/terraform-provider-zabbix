@@ -122,15 +122,15 @@ func resourceZabbixTemplateLinkExists(d *schema.ResourceData, meta interface{}) 
 func resourceZabbixTemplateLinkUpdate(d *schema.ResourceData, meta interface{}) error {
 	api := meta.(*zabbix.API)
 
-	err := updateZabbixTemplateItem(d, api)
+	err := updateZabbixTemplateItems(d, api)
 	if err != nil {
 		return err
 	}
-	err = updateZabbixTemplateTrigger(d, api)
+	err = updateZabbixTemplateTriggers(d, api)
 	if err != nil {
 		return err
 	}
-	err = updateZabbixTemplateDiscoveryRule(d, api)
+	err = updateZabbixTemplateDiscoveryRules(d, api)
 	if err != nil {
 		return err
 	}
@@ -213,7 +213,7 @@ func getTerraformTemplateLLDRules(d *schema.ResourceData, api *zabbix.API) ([]in
 	return lldRulesTerraform, nil
 }
 
-func updateZabbixTemplateItem(d *schema.ResourceData, api *zabbix.API) error {
+func updateZabbixTemplateItems(d *schema.ResourceData, api *zabbix.API) error {
 	if d.HasChange("item") {
 		oldV, newV := d.GetChange("item")
 		oldItems := oldV.(*schema.Set).List()
@@ -270,7 +270,7 @@ func updateZabbixTemplateItem(d *schema.ResourceData, api *zabbix.API) error {
 	return nil
 }
 
-func updateZabbixTemplateTrigger(d *schema.ResourceData, api *zabbix.API) error {
+func updateZabbixTemplateTriggers(d *schema.ResourceData, api *zabbix.API) error {
 	if d.HasChange("trigger") {
 		oldV, newV := d.GetChange("trigger")
 		oldTriggers := oldV.(*schema.Set).List()
@@ -328,7 +328,7 @@ func updateZabbixTemplateTrigger(d *schema.ResourceData, api *zabbix.API) error 
 	return nil
 }
 
-func updateZabbixTemplateDiscoveryRule(d *schema.ResourceData, api *zabbix.API) error {
+func updateZabbixTemplateDiscoveryRules(d *schema.ResourceData, api *zabbix.API) error {
 	if d.HasChange("lld_rule") {
 		oldV, newV := d.GetChange("lld_rule")
 		oldlldRules := oldV.(*schema.Set).List()
