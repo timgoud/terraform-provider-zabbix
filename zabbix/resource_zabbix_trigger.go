@@ -81,7 +81,7 @@ func resourceZabbixTriggerCreate(d *schema.ResourceData, meta interface{}) error
 		err := api.TriggersCreate(triggers)
 
 		if err != nil {
-			if strings.Contains(err.Error(), "DBEXECUTE_ERROR") {
+			if strings.Contains(err.Error(), "SQL statement execution") || strings.Contains(err.Error(), "DBEXECUTE_ERROR") {
 				return resource.RetryableError(fmt.Errorf("Trigger create failed, got error %s", err.Error()))
 			} else {
 				return resource.NonRetryableError(err)
@@ -185,7 +185,7 @@ func resourceZabbixTriggerDelete(d *schema.ResourceData, meta interface{}) error
 				return resource.NonRetryableError(fmt.Errorf("Expected to delete %d trigger and %d were delete", len(templates)+1, len(triggerids)))
 			}
 			return nil
-		} else if strings.Contains(err.Error(), "SQL statement execution") {
+		} else if strings.Contains(err.Error(), "SQL statement execution") || strings.Contains(err.Error(), "DBEXECUTE_ERROR") {
 			log.Printf("[DEBUG] Trigger deletion failed. Got error %s, with trigger %s", err.Error(), d.Id())
 			return resource.RetryableError(fmt.Errorf("Failed to delete trigger %s, got error %s", d.Id(), err.Error()))
 		} else {

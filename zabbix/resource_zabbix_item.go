@@ -160,7 +160,7 @@ func resourceZabbixItemCreate(d *schema.ResourceData, meta interface{}) error {
 	return resource.Retry(time.Minute, func() *resource.RetryError {
 		err = api.ItemsCreate(items)
 		if err != nil {
-			if strings.Contains(err.Error(), "DBEXECUTE_ERROR") {
+			if strings.Contains(err.Error(), "SQL statement execution") || strings.Contains(err.Error(), "DBEXECUTE_ERROR") {
 				return resource.RetryableError(fmt.Errorf("Item create failed, got error %s", err.Error()))
 			} else {
 				return resource.NonRetryableError(err)
