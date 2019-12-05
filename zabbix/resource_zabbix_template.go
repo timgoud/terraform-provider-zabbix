@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/claranet/go-zabbix-api"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -135,14 +137,20 @@ func resourceZabbixTemplateCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 	templates := zabbix.Templates{*template}
 
-	err = api.TemplatesCreate(templates)
-	if err != nil {
-		return err
-	}
+	return resource.Retry(time.Minute, func() *resource.RetryError {
+		err = api.TemplatesCreate(templates)
+		if err != nil {
+			if strings.Contains(err.Error(), "DBEXECUTE_ERROR") {
+				return resource.RetryableError(fmt.Errorf("Template create failed, got error %s", err.Error()))
+			} else {
+				return resource.NonRetryableError(err)
+			}
+		}
 
-	d.Set("template_id", templates[0].TemplateID)
-	d.SetId(templates[0].TemplateID)
-	return resourceZabbixTemplateRead(d, meta)
+		d.Set("template_id", templates[0].TemplateID)
+		d.SetId(templates[0].TemplateID)
+		return resource.NonRetryableError(resourceZabbixTemplateRead(d, meta))
+	})
 }
 
 func resourceZabbixTemplateRead(d *schema.ResourceData, meta interface{}) error {

@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/claranet/go-zabbix-api"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -75,12 +77,20 @@ func resourceZabbixTriggerCreate(d *schema.ResourceData, meta interface{}) error
 	api := meta.(*zabbix.API)
 
 	triggers := zabbix.Triggers{createTriggerObj(d)}
-	err := api.TriggersCreate(triggers)
-	if err != nil {
-		return err
-	}
-	d.SetId(triggers[0].TriggerID)
-	return resourceZabbixTriggerRead(d, meta)
+	return resource.Retry(time.Minute, func() *resource.RetryError {
+		err := api.TriggersCreate(triggers)
+
+		if err != nil {
+			if strings.Contains(err.Error(), "DBEXECUTE_ERROR") {
+				return resource.RetryableError(fmt.Errorf("Trigger create failed, got error %s", err.Error()))
+			} else {
+				return resource.NonRetryableError(err)
+			}
+		}
+
+		d.SetId(triggers[0].TriggerID)
+		return resource.NonRetryableError(resourceZabbixTriggerRead(d, meta))
+	})
 }
 
 func resourceZabbixTriggerRead(d *schema.ResourceData, meta interface{}) error {
@@ -167,26 +177,21 @@ func resourceZabbixTriggerDelete(d *schema.ResourceData, meta interface{}) error
 		"parentTemplateids": trigger.ParentHosts[0].HostID,
 	})
 
-	var triggerids []interface{}
-	for i := 0; i < 3; i++ {
-		triggerids, err = api.TriggersDeleteIDs([]string{d.Id()})
+	return resource.Retry(time.Minute, func() *resource.RetryError {
+		triggerids, err := api.TriggersDeleteIDs([]string{d.Id()})
 
 		if err == nil {
-			break
+			if len(triggerids) != len(templates)+1 {
+				return resource.NonRetryableError(fmt.Errorf("Expected to delete %d trigger and %d were delete", len(templates)+1, len(triggerids)))
+			}
+			return nil
 		} else if strings.Contains(err.Error(), "SQL statement execution") {
-			log.Printf("[DEBUG] Got error %s, with trigger %s at try %d", err.Error(), d.Id(), i)
+			log.Printf("[DEBUG] Trigger deletion failed. Got error %s, with trigger %s", err.Error(), d.Id())
+			return resource.RetryableError(fmt.Errorf("Failed to delete trigger %d, got error %s", d.Id(), err.Error()))
 		} else {
-			return err
+			return resource.NonRetryableError(err)
 		}
-	}
-	if err != nil {
-		return fmt.Errorf("Trigger %s, cannot be delete after 3 try got error %s", d.Id(), err.Error())
-	}
-
-	if len(triggerids) != len(templates)+1 {
-		return fmt.Errorf("Expected to delete %d trigger and %d were delete", len(templates)+1, len(triggerids))
-	}
-	return nil
+	})
 }
 
 func createTriggerDependencies(d *schema.ResourceData) zabbix.Triggers {
