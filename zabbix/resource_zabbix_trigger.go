@@ -167,10 +167,22 @@ func resourceZabbixTriggerDelete(d *schema.ResourceData, meta interface{}) error
 		"parentTemplateids": trigger.ParentHosts[0].HostID,
 	})
 
-	triggerids, err := api.TriggersDeleteIDs([]string{d.Id()})
-	if err != nil {
-		return fmt.Errorf("%s, with trigger %s", err.Error(), d.Id())
+	var triggerids []interface{}
+	for i := 0; i < 3; i++ {
+		triggerids, err = api.TriggersDeleteIDs([]string{d.Id()})
+
+		if err == nil {
+			break
+		} else if strings.Contains(err.Error(), "SQL statement execution") {
+			log.Printf("[DEBUG] Got error %s, with trigger %s at try %d", err.Error(), d.Id(), i)
+		} else {
+			return err
+		}
 	}
+	if err != nil {
+		return fmt.Errorf("Trigger %s, cannot be delete after 3 try got error %s", d.Id(), err.Error())
+	}
+
 	if len(triggerids) != len(templates)+1 {
 		return fmt.Errorf("Expected to delete %d trigger and %d were delete", len(templates)+1, len(triggerids))
 	}
