@@ -23,53 +23,39 @@ resource "zabbix_template" "base_linux_general" {
 # This virtual resource is responsible of ensuring no other items are associated to the template
 resource "zabbix_template_link" "base_linux_general_link" {
   template_id = zabbix_template.base_linux_general.id
-  item {  
-    item_id = zabbix_item.cpu_load_avg1.id
+
+  dynamic "item" {
+    for_each = [
+      zabbix_item.cpu_load_avg1.id,
+      zabbix_item.cpu_util_idle.id,
+      zabbix_item.cpu_num_online.id,
+      zabbix_item.memory_size_pavailable.id,
+    ]
+
+    content {
+      item_id = item.key
+    }
   }
-  item {  
-    item_id = zabbix_item.cpu_util_idle.id
-  }
-  item {  
-    item_id = zabbix_item.cpu_num_online.id
-  }
-  item {  
-    item_id = zabbix_item.memory_size_pavailable.id
-  }
-  trigger {  
-    trigger_id = zabbix_trigger.cpu_load_disaster.id
-  }
-  trigger {  
-    trigger_id = zabbix_trigger.cpu_load_high.id
-  }
-  trigger {  
-    trigger_id = zabbix_trigger.cpu_load_avg.id
-  }
-  trigger {  
-    trigger_id = zabbix_trigger.cpu_load_warn.id
-  }
-  trigger {  
-    trigger_id = zabbix_trigger.cpu_utilization_disaster.id
-  }
-  trigger {  
-    trigger_id = zabbix_trigger.cpu_utilization_high.id
-  }
-  trigger {  
-    trigger_id = zabbix_trigger.cpu_utilization_avg.id
-  }
-  trigger {  
-    trigger_id = zabbix_trigger.cpu_utilization_warn.id
-  }
-  trigger {  
-    trigger_id = zabbix_trigger.memory_space_disaster.id
-  }
-  trigger {  
-    trigger_id = zabbix_trigger.memory_space_high.id
-  }
-  trigger {  
-    trigger_id = zabbix_trigger.memory_space_avg.id
-  }
-  trigger {  
-    trigger_id = zabbix_trigger.memory_space_warn.id
+
+  dynamic "trigger" {
+    for_each = [
+      zabbix_trigger.cpu_load_disaster.id,
+      zabbix_trigger.cpu_load_high.id,
+      zabbix_trigger.cpu_load_avg.id,
+      zabbix_trigger.cpu_load_warn.id,
+      zabbix_trigger.cpu_utilization_disaster.id,
+      zabbix_trigger.cpu_utilization_high.id,
+      zabbix_trigger.cpu_utilization_avg.id,
+      zabbix_trigger.cpu_utilization_warn.id,
+      zabbix_trigger.memory_space_disaster.id,
+      zabbix_trigger.memory_space_high.id,
+      zabbix_trigger.memory_space_avg.id,
+      zabbix_trigger.memory_space_warn.id,
+    ]
+
+    content {
+      trigger_id = trigger.key
+    }
   }
 }
 
