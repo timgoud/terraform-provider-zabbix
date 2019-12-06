@@ -4,10 +4,8 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"time"
 
 	"github.com/claranet/go-zabbix-api"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -22,11 +20,6 @@ func resourceZabbixItem() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 		Schema: map[string]*schema.Schema{
-			"item_id": &schema.Schema{
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "(readonly) ID of the item.",
-			},
 			"delay": &schema.Schema{
 				Type:     schema.TypeInt,
 				Optional: true,
@@ -127,10 +120,9 @@ func resourceZabbixItem() *schema.Resource {
 	}
 }
 
-func createItemObject(d *schema.ResourceData, api *zabbix.API) (*zabbix.Item, error) {
+func createItemObject(d *schema.ResourceData) *zabbix.Item {
 
 	item := zabbix.Item{
-		ItemID:       d.Get("item_id").(string),
 		Delay:        d.Get("delay").(int),
 		HostID:       d.Get("host_id").(string),
 		InterfaceID:  d.Get("interface_id").(string),
@@ -145,32 +137,13 @@ func createItemObject(d *schema.ResourceData, api *zabbix.API) (*zabbix.Item, er
 		Trends:       d.Get("trends").(string),
 		TrapperHosts: d.Get("trapper_host").(string),
 	}
-	return &item, nil
+	return &item
 }
 
 func resourceZabbixItemCreate(d *schema.ResourceData, meta interface{}) error {
-	api := meta.(*zabbix.API)
+	item := createItemObject(d)
 
-	item, err := createItemObject(d, api)
-	if err != nil {
-		return err
-	}
-	items := zabbix.Items{*item}
-
-	return resource.Retry(time.Minute, func() *resource.RetryError {
-		err = api.ItemsCreate(items)
-		if err != nil {
-			if strings.Contains(err.Error(), "SQL statement execution") || strings.Contains(err.Error(), "DBEXECUTE_ERROR") {
-				return resource.RetryableError(fmt.Errorf("Item create failed, got error %s", err.Error()))
-			} else {
-				return resource.NonRetryableError(err)
-			}
-		}
-
-		d.Set("item_id", items[0].ItemID)
-		d.SetId(items[0].ItemID)
-		return resource.NonRetryableError(resourceZabbixItemRead(d, meta))
-	})
+	return createRetry(d, meta, createItem, *item, resourceZabbixItemRead)
 }
 
 func resourceZabbixItemRead(d *schema.ResourceData, meta interface{}) error {
@@ -181,7 +154,6 @@ func resourceZabbixItemRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	d.Set("item_id", item.ItemID)
 	d.Set("delay", item.Delay)
 	d.Set("host_id", item.HostID)
 	d.Set("interface_id", item.InterfaceID)
@@ -215,49 +187,55 @@ func resourceZabbixItemExist(d *schema.ResourceData, meta interface{}) (bool, er
 }
 
 func resourceZabbixItemUpdate(d *schema.ResourceData, meta interface{}) error {
-	api := meta.(*zabbix.API)
+	item := createItemObject(d)
 
-	item, err := createItemObject(d, api)
-	if err != nil {
-		return err
-	}
-	items := zabbix.Items{*item}
+	item.ItemID = d.Id()
+	return createRetry(d, meta, updateItem, *item, resourceZabbixItemRead)
 
-	err = api.ItemsUpdate(items)
-	if err != nil {
-		return err
-	}
-
-	return resourceZabbixItemRead(d, meta)
 }
 
 func resourceZabbixItemDelete(d *schema.ResourceData, meta interface{}) error {
 	api := meta.(*zabbix.API)
 
+	return deleteRetry(d.Id(), getItemParentID, api.ItemsDeleteIDs, api)
+}
+
+func getItemParentID(api *zabbix.API, id string) (string, error) {
 	items, err := api.ItemsGet(zabbix.Params{
 		"output":      "extend",
 		"selectHosts": "extend",
-		"itemids":     d.Id(),
+		"itemids":     id,
 	})
 	if err != nil {
-		return fmt.Errorf("%s, with item %s", err.Error(), d.Id())
+		return "", fmt.Errorf("%s, with item %s", err.Error(), id)
 	}
 	if len(items) != 1 {
-		return fmt.Errorf("Expected one item and got %d items", len(items))
+		return "", fmt.Errorf("Expected one item and got %d items", len(items))
 	}
-	item := items[0]
+	if len(items[0].ItemParent) != 1 {
+		return "", fmt.Errorf("Expected one parent for item %s and got %d", id, len(items[0].ItemParent))
+	}
+	return items[0].ItemParent[0].HostID, nil
+}
 
-	templates, err := api.TemplatesGet(zabbix.Params{
-		"ouput":             "extend",
-		"parentTemplateids": item.ItemParent[0].HostID,
-	})
+func createItem(item interface{}, api *zabbix.API) (id string, err error) {
+	items := zabbix.Items{item.(zabbix.Item)}
 
-	itemids, err := api.ItemsDeleteIDs([]string{d.Id()})
+	err = api.ItemsCreate(items)
 	if err != nil {
-		return err
+		return
 	}
-	if len(itemids) != len(templates)+1 {
-		return fmt.Errorf("Expected to delete %d item and %d were delete", len(templates)+1, len(itemids))
+	id = items[0].ItemID
+	return
+}
+
+func updateItem(item interface{}, api *zabbix.API) (id string, err error) {
+	items := zabbix.Items{item.(zabbix.Item)}
+
+	err = api.ItemsUpdate(items)
+	if err != nil {
+		return
 	}
-	return nil
+	id = items[0].ItemID
+	return
 }

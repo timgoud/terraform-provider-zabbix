@@ -150,7 +150,7 @@ func testAccZabbixTriggerSimpleConfig(strID string) string {
 		history = "25"
 		delta = 1
 		type = 2
-		host_id = "${zabbix_template.template_test.template_id}"
+		host_id = "${zabbix_template.template_test.id}"
 	}
 	
 	resource "zabbix_trigger" "trigger_test" {
@@ -183,7 +183,7 @@ func testAccZabbixTriggerSimpleConfigUpdate(strID string) string {
 		history = "25"
 		delta = 1
 		type = 2
-		host_id = "${zabbix_template.template_test.template_id}"
+		host_id = "${zabbix_template.template_test.id}"
 	}
 	
 	resource "zabbix_trigger" "trigger_test" {
@@ -216,7 +216,7 @@ func testAccZabbixTriggerOmitEmpty(strID string) string {
 		history = "25"
 		delta = 1
 		type = 2
-		host_id = "${zabbix_template.template_test.template_id}"
+		host_id = "${zabbix_template.template_test.id}"
 	}
 	
 	resource "zabbix_trigger" "trigger_test" {
@@ -250,7 +250,7 @@ func testAccZabbixTriggerMacroConfig(strID string) string {
 		history = "25"
 		delta = 1
 		type = 2
-		host_id = "${zabbix_template.template_test.template_id}"
+		host_id = "${zabbix_template.template_test.id}"
 	}
 	
 	resource "zabbix_trigger" "trigger_test" {
@@ -287,7 +287,7 @@ func testAccZabbixTriggerMacroConfigUpdate(strID string) string {
 		history = "25"
 		delta = 1
 		type = 2
-		host_id = "${zabbix_template.template_test.template_id}"
+		host_id = "${zabbix_template.template_test.id}"
 	}
 	
 	resource "zabbix_trigger" "trigger_test" {
@@ -320,7 +320,7 @@ func testAccZabbixTriggerDependencies(strID string) string {
 		history = "25"
 		delta = 1
 		type = 2
-		host_id = "${zabbix_template.template_test.template_id}"
+		host_id = "${zabbix_template.template_test.id}"
 	}
 	
 	resource "zabbix_trigger" "trigger_test" {

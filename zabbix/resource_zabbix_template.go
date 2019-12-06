@@ -4,10 +4,8 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"time"
 
 	"github.com/claranet/go-zabbix-api"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -22,11 +20,6 @@ func resourceZabbixTemplate() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 		Schema: map[string]*schema.Schema{
-			"template_id": &schema.Schema{
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "(readonly) ID of the template. ",
-			},
 			"host": &schema.Schema{
 				Type:        schema.TypeString,
 				Required:    true,
@@ -55,11 +48,6 @@ func resourceZabbixTemplate() *schema.Resource {
 				Description: "User macros for the template",
 			},
 			"linked_template": &schema.Schema{
-				Type:     schema.TypeSet,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Optional: true,
-			},
-			"linked_host": &schema.Schema{
 				Type:     schema.TypeSet,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Optional: true,
@@ -95,16 +83,6 @@ func createLinkedTemplate(d *schema.ResourceData) zabbix.Templates {
 	return templates
 }
 
-func createLinkedHost(d *schema.ResourceData) []string {
-	var hosts []string
-
-	terraformHosts := d.Get("linked_host").(*schema.Set)
-	for _, terraformHost := range terraformHosts.List() {
-		hosts = append(hosts, terraformHost.(string))
-	}
-	return hosts
-}
-
 func createTemplateObj(d *schema.ResourceData, api *zabbix.API) (*zabbix.Template, error) {
 	template := zabbix.Template{
 		Host:            d.Get("host").(string),
@@ -112,7 +90,6 @@ func createTemplateObj(d *schema.ResourceData, api *zabbix.API) (*zabbix.Templat
 		Description:     d.Get("description").(string),
 		UserMacros:      createZabbixMacro(d),
 		LinkedTemplates: createLinkedTemplate(d),
-		LinkedHosts:     createLinkedHost(d),
 	}
 	hostGroupIDs, err := getHostGroups(d, api)
 	if err != nil {
@@ -135,33 +112,17 @@ func resourceZabbixTemplateCreate(d *schema.ResourceData, meta interface{}) erro
 	if err != nil {
 		return err
 	}
-	templates := zabbix.Templates{*template}
 
-	return resource.Retry(time.Minute, func() *resource.RetryError {
-		err = api.TemplatesCreate(templates)
-		if err != nil {
-			if strings.Contains(err.Error(), "SQL statement execution") || strings.Contains(err.Error(), "DBEXECUTE_ERROR") {
-				return resource.RetryableError(fmt.Errorf("Template create failed, got error %s", err.Error()))
-			} else {
-				return resource.NonRetryableError(err)
-			}
-		}
-
-		d.Set("template_id", templates[0].TemplateID)
-		d.SetId(templates[0].TemplateID)
-		return resource.NonRetryableError(resourceZabbixTemplateRead(d, meta))
-	})
+	return createRetry(d, meta, createTemplate, *template, resourceZabbixTemplateRead)
 }
 
 func resourceZabbixTemplateRead(d *schema.ResourceData, meta interface{}) error {
 	api := meta.(*zabbix.API)
 
 	params := zabbix.Params{
-		"templateids":     d.Id(),
-		"selectHosts":     "extend",
-		"selectTemplates": "extend",
-		"output":          "extend",
-		"selectMacros":    "extend",
+		"templateids":  d.Id(),
+		"output":       "extend",
+		"selectMacros": "extend",
 	}
 	templates, err := api.TemplatesGet(params)
 	if err != nil {
@@ -212,14 +173,8 @@ func resourceZabbixTemplateUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 	template.TemplatesClear = getUnlinkedTemplate(d)
 	template.TemplateID = d.Id()
-	templates := zabbix.Templates{*template}
 
-	err = api.TemplatesUpdate(templates)
-	if err != nil {
-		return err
-	}
-
-	return resourceZabbixTemplateRead(d, meta)
+	return createRetry(d, meta, updateTemplate, *template, resourceZabbixTemplateRead)
 }
 
 func resourceZabbixTemplateDelete(d *schema.ResourceData, meta interface{}) error {
@@ -277,15 +232,6 @@ func createTerraformLinkedTemplate(template zabbix.Template) []string {
 	return terraformTemplates
 }
 
-func createTerraformLinkedHost(template zabbix.Template) []string {
-	var terraformHosts []string
-
-	for _, linkedHost := range template.LinkedHosts {
-		terraformHosts = append(terraformHosts, linkedHost)
-	}
-	return terraformHosts
-}
-
 func getUnlinkedTemplate(d *schema.ResourceData) zabbix.Templates {
 	before, after := d.GetChange("linked_template")
 	beforeID := before.(*schema.Set).List()
@@ -304,4 +250,26 @@ func getUnlinkedTemplate(d *schema.ResourceData) zabbix.Templates {
 		}
 	}
 	return unlinkID
+}
+
+func createTemplate(template interface{}, api *zabbix.API) (id string, err error) {
+	templates := zabbix.Templates{template.(zabbix.Template)}
+
+	err = api.TemplatesCreate(templates)
+	if err != nil {
+		return
+	}
+	id = templates[0].TemplateID
+	return
+}
+
+func updateTemplate(template interface{}, api *zabbix.API) (id string, err error) {
+	templates := zabbix.Templates{template.(zabbix.Template)}
+
+	err = api.TemplatesUpdate(templates)
+	if err != nil {
+		return
+	}
+	id = templates[0].TemplateID
+	return
 }

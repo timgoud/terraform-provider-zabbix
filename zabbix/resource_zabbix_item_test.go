@@ -69,7 +69,7 @@ func testAccZabbixItemConfig(groupName string, templateName string, itemName str
 			description = "description for item : %s"
 			trends = "300"
 			history = "25"
-			host_id = "${zabbix_template.my_zbx_template.template_id}"
+			host_id = "${zabbix_template.my_zbx_template.id}"
 	  	}
 	`, groupName, templateName, templateName, templateName, itemName, itemName)
 }
@@ -94,7 +94,7 @@ func testAccZabbixItemUpdate(groupName string, templateName string, itemName str
 			description = "update description for item : %s"
 			trends = "3"
 			history = "2"
-			host_id = "${zabbix_template.my_zbx_template.template_id}"
+			host_id = "${zabbix_template.my_zbx_template.id}"
 	  	}
 	`, groupName, templateName, templateName, templateName, itemName, itemName)
 }

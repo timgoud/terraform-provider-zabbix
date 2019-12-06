@@ -4,10 +4,8 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"time"
 
 	"github.com/claranet/go-zabbix-api"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -22,11 +20,6 @@ func resourceZabbixTrigger() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 		Schema: map[string]*schema.Schema{
-			"trigger_id": &schema.Schema{
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "(readonly) ID of the trigger",
-			},
 			"description": &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
@@ -74,23 +67,9 @@ func resourceZabbixTrigger() *schema.Resource {
 }
 
 func resourceZabbixTriggerCreate(d *schema.ResourceData, meta interface{}) error {
-	api := meta.(*zabbix.API)
+	trigger := createTriggerObj(d)
 
-	triggers := zabbix.Triggers{createTriggerObj(d)}
-	return resource.Retry(time.Minute, func() *resource.RetryError {
-		err := api.TriggersCreate(triggers)
-
-		if err != nil {
-			if strings.Contains(err.Error(), "SQL statement execution") || strings.Contains(err.Error(), "DBEXECUTE_ERROR") {
-				return resource.RetryableError(fmt.Errorf("Trigger create failed, got error %s", err.Error()))
-			} else {
-				return resource.NonRetryableError(err)
-			}
-		}
-
-		d.SetId(triggers[0].TriggerID)
-		return resource.NonRetryableError(resourceZabbixTriggerRead(d, meta))
-	})
+	return createRetry(d, meta, createTrigger, trigger, resourceZabbixTriggerRead)
 }
 
 func resourceZabbixTriggerRead(d *schema.ResourceData, meta interface{}) error {
@@ -112,7 +91,6 @@ func resourceZabbixTriggerRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	trigger := res[0]
 	err = getTriggerExpression(&trigger, api)
-	d.Set("trigger_id", trigger.TriggerID)
 	log.Printf("[DEBUG] trigger expression: %s", trigger.Expression)
 	d.Set("description", trigger.Description)
 	d.Set("expression", trigger.Expression)
@@ -143,55 +121,19 @@ func resourceZabbixTriggerExist(d *schema.ResourceData, meta interface{}) (bool,
 }
 
 func resourceZabbixTriggerUpdate(d *schema.ResourceData, meta interface{}) error {
-	api := meta.(*zabbix.API)
+	trigger := createTriggerObj(d)
 
-	triggers := zabbix.Triggers{createTriggerObj(d)}
+	trigger.TriggerID = d.Id()
 	if !d.HasChange("dependencies") {
-		triggers[0].Dependencies = nil
+		trigger.Dependencies = nil
 	}
-	err := api.TriggersUpdate(triggers)
-	if err != nil {
-		return err
-	}
-	return resourceZabbixTriggerRead(d, meta)
+	return createRetry(d, meta, updateTrigger, trigger, resourceZabbixTriggerRead)
 }
 
 func resourceZabbixTriggerDelete(d *schema.ResourceData, meta interface{}) error {
 	api := meta.(*zabbix.API)
 
-	triggers, err := api.TriggersGet(zabbix.Params{
-		"ouput":       "extend",
-		"selectHosts": "extend",
-		"triggerids":  d.Id(),
-	})
-	if err != nil {
-		return fmt.Errorf("%s, with trigger %s", err.Error(), d.Id())
-	}
-	if len(triggers) != 1 {
-		return fmt.Errorf("Expected one item and got %d items", len(triggers))
-	}
-	trigger := triggers[0]
-
-	templates, err := api.TemplatesGet(zabbix.Params{
-		"output":            "extend",
-		"parentTemplateids": trigger.ParentHosts[0].HostID,
-	})
-
-	return resource.Retry(time.Minute, func() *resource.RetryError {
-		triggerids, err := api.TriggersDeleteIDs([]string{d.Id()})
-
-		if err == nil {
-			if len(triggerids) != len(templates)+1 {
-				return resource.NonRetryableError(fmt.Errorf("Expected to delete %d trigger and %d were delete", len(templates)+1, len(triggerids)))
-			}
-			return nil
-		} else if strings.Contains(err.Error(), "SQL statement execution") || strings.Contains(err.Error(), "DBEXECUTE_ERROR") {
-			log.Printf("[DEBUG] Trigger deletion failed. Got error %s, with trigger %s", err.Error(), d.Id())
-			return resource.RetryableError(fmt.Errorf("Failed to delete trigger %s, got error %s", d.Id(), err.Error()))
-		} else {
-			return resource.NonRetryableError(err)
-		}
-	})
+	return deleteRetry(d.Id(), getTriggerParentID, api.TriggersDeleteIDs, api)
 }
 
 func createTriggerDependencies(d *schema.ResourceData) zabbix.Triggers {
@@ -207,7 +149,6 @@ func createTriggerDependencies(d *schema.ResourceData) zabbix.Triggers {
 
 func createTriggerObj(d *schema.ResourceData) zabbix.Trigger {
 	return zabbix.Trigger{
-		TriggerID:    d.Get("trigger_id").(string),
 		Description:  d.Get("description").(string),
 		Expression:   d.Get("expression").(string),
 		Comments:     d.Get("comment").(string),
@@ -241,4 +182,44 @@ func getTriggerExpression(trigger *zabbix.Trigger, api *zabbix.API) error {
 		trigger.Expression = strings.Replace(trigger.Expression, idstr, expendValue, 1)
 	}
 	return nil
+}
+
+func getTriggerParentID(api *zabbix.API, id string) (string, error) {
+	triggers, err := api.TriggersGet(zabbix.Params{
+		"ouput":       "extend",
+		"selectHosts": "extend",
+		"triggerids":  id,
+	})
+	if err != nil {
+		return "", err
+	}
+	if len(triggers) != 1 {
+		return "", fmt.Errorf("Expected one item and got %d items", len(triggers))
+	}
+	if len(triggers[0].ParentHosts) != 1 {
+		return "", fmt.Errorf("Expected one parent for item %s and got %d", id, len(triggers[0].ParentHosts))
+	}
+	return triggers[0].ParentHosts[0].HostID, nil
+}
+
+func createTrigger(trigger interface{}, api *zabbix.API) (id string, err error) {
+	triggers := zabbix.Triggers{trigger.(zabbix.Trigger)}
+
+	err = api.TriggersCreate(triggers)
+	if err != nil {
+		return
+	}
+	id = triggers[0].TriggerID
+	return
+}
+
+func updateTrigger(trigger interface{}, api *zabbix.API) (id string, err error) {
+	triggers := zabbix.Triggers{trigger.(zabbix.Trigger)}
+
+	err = api.TriggersUpdate(triggers)
+	if err != nil {
+		return
+	}
+	id = triggers[0].TriggerID
+	return
 }

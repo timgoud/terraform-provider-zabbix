@@ -155,7 +155,7 @@ func testAccZabbixTemplateLinkConfig() string {
 			delay = "34"
 			trends = "300"
 			history = "25"
-			host_id = "${zabbix_template.template_test.template_id}"
+			host_id = "${zabbix_template.template_test.id}"
 		}
 		
 		resource "zabbix_trigger" "trigger_test_0" {
@@ -194,7 +194,7 @@ func testAccZabbixTemplateLinkDeleteTrigger() string {
 			delay = "34"
 			trends = "300"
 			history = "25"
-			host_id = "${zabbix_template.template_test.template_id}"
+			host_id = "${zabbix_template.template_test.id}"
 		}
 
 		resource "zabbix_template_link" "template_link_test" {

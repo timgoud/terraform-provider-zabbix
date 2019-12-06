@@ -9,7 +9,7 @@ resource "zabbix_trigger" "cpu_load_high" {
   expression  = "{${zabbix_template.base_linux_general.host}:${zabbix_item.cpu_load_avg1.key}.min({$CPU_LOAD_RATIO_INTERVAL})} / {${zabbix_template.base_linux_general.host}:${zabbix_item.cpu_num_online.key}.min({$CPU_LOAD_RATIO_INTERVAL})} > {$CPU_LOAD_RATIO_HIGH}"
   priority    = 4
   dependencies = [
-    zabbix_trigger.cpu_load_disaster.trigger_id,
+    zabbix_trigger.cpu_load_disaster.id,
   ]
 }
 
@@ -18,7 +18,7 @@ resource "zabbix_trigger" "cpu_load_avg" {
   expression  = "{${zabbix_template.base_linux_general.host}:${zabbix_item.cpu_load_avg1.key}.min({$CPU_LOAD_RATIO_INTERVAL})} / {${zabbix_template.base_linux_general.host}:${zabbix_item.cpu_num_online.key}.min({$CPU_LOAD_RATIO_INTERVAL})} > {$CPU_LOAD_RATIO_AVG}"
   priority    = 3
   dependencies = [
-    zabbix_trigger.cpu_load_high.trigger_id,
+    zabbix_trigger.cpu_load_high.id,
   ]
 }
 
@@ -27,7 +27,7 @@ resource "zabbix_trigger" "cpu_load_warn" {
   expression  = "{${zabbix_template.base_linux_general.host}:${zabbix_item.cpu_load_avg1.key}.min({$CPU_LOAD_RATIO_INTERVAL})} / {${zabbix_template.base_linux_general.host}:${zabbix_item.cpu_num_online.key}.min({$CPU_LOAD_RATIO_INTERVAL})} > {$CPU_LOAD_RATIO_WARN}"
   priority    = 2
   dependencies = [
-    zabbix_trigger.cpu_load_avg.trigger_id,
+    zabbix_trigger.cpu_load_avg.id,
   ]
 }
 
@@ -42,7 +42,7 @@ resource "zabbix_trigger" "cpu_utilization_high" {
   expression  = "100 - {${zabbix_template.base_linux_general.host}:${zabbix_item.cpu_util_idle.key}.max({$CPU_INTERVAL})} > {$CPU_HIGH}"
   priority    = 4
   dependencies = [
-    zabbix_trigger.cpu_utilization_disaster.trigger_id,
+    zabbix_trigger.cpu_utilization_disaster.id,
   ]
 }
 
@@ -51,7 +51,7 @@ resource "zabbix_trigger" "cpu_utilization_avg" {
   expression  = "100 - {${zabbix_template.base_linux_general.host}:${zabbix_item.cpu_util_idle.key}.max({$CPU_INTERVAL})} > {$CPU_AVG}"
   priority    = 3
   dependencies = [
-    zabbix_trigger.cpu_utilization_high.trigger_id,
+    zabbix_trigger.cpu_utilization_high.id,
   ]
 }
 
@@ -60,7 +60,7 @@ resource "zabbix_trigger" "cpu_utilization_warn" {
   expression  = "100 - {${zabbix_template.base_linux_general.host}:${zabbix_item.cpu_util_idle.key}.max({$CPU_INTERVAL})} > {$CPU_WARN}"
   priority    = 2
   dependencies = [
-    zabbix_trigger.cpu_utilization_avg.trigger_id,
+    zabbix_trigger.cpu_utilization_avg.id,
   ]
 }
 
@@ -75,7 +75,7 @@ resource "zabbix_trigger" "memory_space_high" {
   expression  = "{${zabbix_template.base_linux_general.host}:${zabbix_item.memory_size_pavailable.key}.last()} < {$MEMORY_PERCENTAGE_HIGH}"
   priority    = 4
   dependencies = [
-    zabbix_trigger.memory_space_disaster.trigger_id,
+    zabbix_trigger.memory_space_disaster.id,
   ]
 }
 
@@ -84,7 +84,7 @@ resource "zabbix_trigger" "memory_space_avg" {
   expression  = "{${zabbix_template.base_linux_general.host}:${zabbix_item.memory_size_pavailable.key}.last()} < {$MEMORY_PERCENTAGE_AVG}"
   priority    = 3
   dependencies = [
-    zabbix_trigger.memory_space_high.trigger_id,
+    zabbix_trigger.memory_space_high.id,
   ]
 }
 
@@ -93,7 +93,7 @@ resource "zabbix_trigger" "memory_space_warn" {
   expression  = "{${zabbix_template.base_linux_general.host}:${zabbix_item.memory_size_pavailable.key}.last()} < {$MEMORY_PERCENTAGE_WARN}"
   priority    = 2
   dependencies = [
-    zabbix_trigger.memory_space_avg.trigger_id,
+    zabbix_trigger.memory_space_avg.id,
   ]
 }
 
