@@ -26,7 +26,7 @@ func resourceZabbixItemPrototype() *schema.Resource {
 				Description: "(readonly) ID of the item prototype.",
 			},
 			"delay": &schema.Schema{
-				Type:     schema.TypeInt,
+				Type:     schema.TypeString,
 				Optional: true,
 			},
 			"host_id": &schema.Schema{
@@ -109,13 +109,13 @@ func resourceZabbixItemPrototype() *schema.Resource {
 				Default:     "",
 			},
 			"history": &schema.Schema{
-				Type:        schema.TypeInt,
+				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Number of days to keep item's history data. Default: 90. ",
 				Default:     "90",
 			},
 			"trends": &schema.Schema{
-				Type:        schema.TypeInt,
+				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Number of days to keep item's trends data. Default: 365. ",
 				Default:     "365",
