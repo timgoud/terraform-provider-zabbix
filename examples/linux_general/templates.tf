@@ -62,7 +62,7 @@ resource "zabbix_template_link" "base_linux_general_link" {
 resource "zabbix_template" "base_linux_network" {
   host        = "Base_Linux_Network"
   groups      = [zabbix_host_group.template_linux.name]
-  description = "Realy interesting"
+  description = "Really interesting"
 }
 
 resource "zabbix_template_link" "base_linux_network_link" {
@@ -75,20 +75,22 @@ resource "zabbix_template_link" "base_linux_network_link" {
   }
 }
 
-resource "zabbix_template" "standart_linux" {
-  host        = "Standart_Linux_General"
+resource "zabbix_template" "standard_linux" {
+  host        = "Standard_Linux_General"
   groups      = [zabbix_host_group.template_linux.name]
-  description = "Realy interesting"
+  description = "Really interesting"
   linked_template = [
     zabbix_template.base_linux_general.id,
     zabbix_template.base_linux_network.id,
   ]
-  depends_on = [# Require to be sure that standart_linux is update after his dependencies
+
+  # Required to be sure that standard_linux is updated after his dependencies
+  depends_on = [
     zabbix_template_link.base_linux_general_link,
     zabbix_template_link.base_linux_network_link,
   ]
 }
 
-resource "zabbix_template_link" "standart_linux_link" {
-  template_id = zabbix_template.standart_linux.id
+resource "zabbix_template_link" "standard_linux_link" {
+  template_id = zabbix_template.standard_linux.id
 }
