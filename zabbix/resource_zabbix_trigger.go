@@ -187,7 +187,7 @@ func resourceZabbixTriggerDelete(d *schema.ResourceData, meta interface{}) error
 			return nil
 		} else if strings.Contains(err.Error(), "SQL statement execution") {
 			log.Printf("[DEBUG] Trigger deletion failed. Got error %s, with trigger %s", err.Error(), d.Id())
-			return resource.RetryableError(fmt.Errorf("Failed to delete trigger %d, got error %s", d.Id(), err.Error()))
+			return resource.RetryableError(fmt.Errorf("Failed to delete trigger %s, got error %s", d.Id(), err.Error()))
 		} else {
 			return resource.NonRetryableError(err)
 		}
