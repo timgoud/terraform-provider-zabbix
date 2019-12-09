@@ -1,27 +1,21 @@
----
 dist: trusty
 services:
-  - docker
+- docker
 language: go
 go:
-  - 1.12.x
-
+- 1.12.x
 install:
-  # This script is used by the Travis build to install a cookie for
-  # go.googlesource.com so rate limits are higher when using `go get` to fetch
-  # packages that live there.
-  # See: https://github.com/golang/go/issues/12933
-  - bash scripts/gogetcookie.sh
-
+- bash scripts/gogetcookie.sh
 script:
-  - make test
-  #- make vet
-  #- make website-test
-
+- make test
 branches:
   only:
-    - master
+  - master
 matrix:
   fast_finish: true
   allow_failures:
-    - go: tip
+  - go: tip
+notifications:
+  slack:
+    rooms:
+      secure: TsAhrgfwbCvW1n1M+9vRGb0MYV4Yz5A6Z6sGwG7cmFa4nN1le2PD/sc59NXAD4HR+wlpq8fWKcU4Q4Gj96EuXMC+zr+zeWXl/spxtppi6RlFWp4JEsAZ+H9xP63tWZrgmaSmQhoVAPt1G1QUS/tJQsJ7hBrf103oE7TH1urhmVIfBR4KKSlWEL+pvPnh6t8+asbpsmNCfizMxukfjMg6qxGhiG8T3b4wARpSHpQOJJdBeR6/VB9ApCikbt81pt2Z0ui9t+GBm1mq7+Q5d5uJK2Hoiibub4AnX2cgxHP/GY+cPI9cSU7JUg3PGnYMKE92IVw5KnEE6yd3ggVJk7ChSpHGVd1lQhSrrU6q2i827Qu71RHTAuVUXq+OvJYtAEu7sRzUEKiAZwDIvv+DanL1WtwyXTkcybJbYO01L3NWOzurHUsWWl6aijAOgg8hz/RDLmp7Sue1Kf/N5rbY5ZX1by+0BOu+b0BZ5567mebwaSVxVR4ONI1zJJzKYYqhfM6FNQIMSS1IaZ1YbiogAN2BasI8EaRPjpA/t+D4mjbUhWe0LY+sX74F+1Vn047Lpy6n2lezjM/oMf6mts9kOy/BHDmhKDc54cYSrxMgYocLfGuFVsvXnaV/wfuBmqmBeC8Oju/OgaGAk9f4Gnj0iGGu2W+q+JwWLQrn1xE9KVHU9fM=
