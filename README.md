@@ -73,7 +73,7 @@ Notes
 
 Template linking is used as a way to track template items and triggers in an authoritative way. A template link resource must contain all the ids of your local items and triggers otherwise they will be deleted during the next apply.
 
-* If you use the template link resource to track template depencencies you should pay attention to always have you local item and trigger declared inside otherwise they will be delete and create in loop.
+* If you use the template link resource to track template dependencies you should pay attention to always have your local item and trigger referenced otherwise they will be deleted and will need to be recreated, causing a permanent diff.
 * If you have template dependencies you should use the `template_id` value of the `zabbix_template_link` resource to link the children templates to the parent else the child template could be updated before parent item or trigger which lead to errors like `Error: Expected to delete 2 trigger and 1 were delete`.
 
 Examples

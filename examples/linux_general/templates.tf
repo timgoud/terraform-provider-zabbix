@@ -33,7 +33,7 @@ resource "zabbix_template_link" "base_linux_general_link" {
     ]
 
     content {
-      item_id = item.key
+      item_id = item.value
     }
   }
 
@@ -54,7 +54,7 @@ resource "zabbix_template_link" "base_linux_general_link" {
     ]
 
     content {
-      trigger_id = trigger.key
+      trigger_id = trigger.value
     }
   }
 }
