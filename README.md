@@ -60,7 +60,7 @@ $ make test
 
 In order to run the full suite of Acceptance tests, run `make testacc`.
 
-*Note:* Acceptance tests create real resources, and often cost money to run.
+*Note:* Acceptance tests create real resources.
 
 ```sh
 $ make testacc
@@ -71,10 +71,10 @@ Notes
 
 ### Template linking
 
-Template link is used as a way to track template items and triggers. Template link must contain all the id ofs your local items and triggers otherwise they will be delete during the next apply.
+Template linking is used as a way to track template items and triggers in an authoritative way. A template link resource must contain all the ids of your local items and triggers otherwise they will be deleted during the next apply.
 
 * If you use the template link resource to track template depencencies you should pay attention to always have you local item and trigger declared inside otherwise they will be delete and create in loop.
-* If you have template dependencies you should use the `template_id` value of the `zabbix_template_link` resource to link the children templates to the parent else the child template could be updated before parent item or trigger which lead to error
+* If you have template dependencies you should use the `template_id` value of the `zabbix_template_link` resource to link the children templates to the parent else the child template could be updated before parent item or trigger which lead to errors like `Error: Expected to delete 2 trigger and 1 were delete`.
 
 Examples
 --------
@@ -106,7 +106,7 @@ resource "zabbix_host_group" "zabbix" {
 
 ### Template
 
-The template link resource is required if you want to track your template item and trigger
+The template link resource is required if you want to track your template item and trigger in an authoritative way.
 
 ```hcl
 provider "zabbix" {
@@ -129,7 +129,7 @@ resource "zabbix_template" "demo_template" {
   }
 }
 
-# This virtual resource is responsible of ensuring no other items are associated to the template
+# This virtual resource is responsible of ensuring no item and trigger is directly associated to the template
 resource "zabbix_template_link" "demo_template_link" {
   template_id = zabbix_template.demo_template.id
 }
@@ -175,7 +175,7 @@ resource "zabbix_trigger" "demo_trigger" {
   status      = 0
 }
 
-# This virtual resource is responsible of ensuring no other items are associated to the template
+# This virtual resource is responsible of ensuring no item and trigger is directly associated to the template
 resource "zabbix_template_link" "demo_template_link" {
   template_id = zabbix_template.demo_template.id
   item {
