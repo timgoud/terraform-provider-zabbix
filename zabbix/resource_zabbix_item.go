@@ -134,7 +134,7 @@ func resourceZabbixItem() *schema.Resource {
 func createItemObject(d *schema.ResourceData) *zabbix.Item {
 
 	item := zabbix.Item{
-		Delay:        d.Get("delay").(int),
+		Delay:        d.Get("delay").(string),
 		HostID:       d.Get("host_id").(string),
 		InterfaceID:  d.Get("interface_id").(string),
 		Key:          d.Get("key").(string),

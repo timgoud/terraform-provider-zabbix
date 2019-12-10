@@ -62,7 +62,7 @@ func TestAccZabbixTemplateLink_DeleteServerItem(t *testing.T) {
 		Name:  "server_item",
 		Key:   "server.key",
 		Type:  zabbix.ZabbixAgent,
-		Delay: 30,
+		Delay: "30",
 	}
 
 	resource.Test(t, resource.TestCase{
@@ -101,7 +101,7 @@ func TestAccZabbixTemplateLink_DeleteServerTrigger(t *testing.T) {
 		Name:  "server_item",
 		Key:   "server.key",
 		Type:  zabbix.ZabbixAgent,
-		Delay: 30,
+		Delay: "30",
 	}
 	trigger := zabbix.Trigger{
 		Description: "server_trigger",
