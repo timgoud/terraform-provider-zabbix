@@ -7,6 +7,7 @@ import (
 
 	"github.com/claranet/go-zabbix-api"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/mcuadros/go-version"
 )
 
 func resourceZabbixItem() *schema.Resource {
@@ -21,7 +22,7 @@ func resourceZabbixItem() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"delay": &schema.Schema{
-				Type:     schema.TypeInt,
+				Type:     schema.TypeString,
 				Optional: true,
 			},
 			"host_id": &schema.Schema{
@@ -68,7 +69,7 @@ func resourceZabbixItem() *schema.Resource {
 					return
 				},
 			},
-			"data_type": &schema.Schema{
+			"data_type": &schema.Schema{ // Remove in zabbix 3.4
 				Type:     schema.TypeInt,
 				Optional: true,
 				Default:  0,
@@ -80,7 +81,7 @@ func resourceZabbixItem() *schema.Resource {
 					return
 				},
 			},
-			"delta": &schema.Schema{
+			"delta": &schema.Schema{ // Remove in zabbix 3.4
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Description: "Value that will be stored. ",
@@ -103,13 +104,23 @@ func resourceZabbixItem() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Number of days to keep item's history data. Default: 90. ",
-				Default:     "90",
+				DefaultFunc: func() (interface{}, error) {
+					if version.Compare(zabbixAPIVersion, "3.4.0", ">=") {
+						return "90d", nil
+					}
+					return "90", nil
+				},
 			},
 			"trends": &schema.Schema{
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Number of days to keep item's trends data. Default: 365. ",
-				Default:     "365",
+				DefaultFunc: func() (interface{}, error) {
+					if version.Compare(zabbixAPIVersion, "3.4.0", ">=") {
+						return "90d", nil
+					}
+					return "90", nil
+				},
 			},
 			"trapper_host": &schema.Schema{
 				Type:        schema.TypeString,

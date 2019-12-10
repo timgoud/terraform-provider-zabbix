@@ -2,7 +2,9 @@ package provider
 
 import (
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 
 	"github.com/claranet/go-zabbix-api"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/logging"
@@ -10,8 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
+var zabbixAPIVersion = ""
+
 // Provider define the provider and his resources
 func Provider() terraform.ResourceProvider {
+	log.Printf("CONFIGURATION FSDFSDFDFSFSDFDSFSFSDFSDFSDFSSDSFSDFSF %s", os.Getenv("ZABBIX_SERVER_URL"))
+
 	p := &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"user": &schema.Schema{
@@ -68,6 +74,11 @@ func providerConfigure(d *schema.ResourceData, terraformVersion string) (interfa
 	if _, err := api.Login(d.Get("user").(string), d.Get("password").(string)); err != nil {
 		return nil, err
 	}
+	v, err := api.Version()
+	if err != nil {
+		return nil, err
+	}
+	zabbixAPIVersion = v
 
 	return api, nil
 }
