@@ -1,21 +1,22 @@
 package provider
 
 import (
-	"fmt"
 	"log"
-	"strings"
 
 	"github.com/claranet/go-zabbix-api"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceZabbixlldRuleLink() *schema.Resource {
+func resourceZabbixLLDRuleLink() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceZabbixlldRuleLinkCreate,
-		Read:   resourceZabbixlldRuleLinkRead,
-		Exists: resourceZabbixlldRuleLinkExist,
-		Update: resourceZabbixlldRuleLinkUpdate,
-		Delete: resourceZabbixlldRuleLinkDelete,
+		Create: resourceZabbixLLDRuleLinkCreate,
+		Read:   resourceZabbixLLDRuleLinkRead,
+		Exists: resourceZabbixLLDRuleLinkExists,
+		Update: resourceZabbixLLDRuleLinkUpdate,
+		Delete: resourceZabbixLLDRuleLinkDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 		Schema: map[string]*schema.Schema{
 			"lld_rule_id": &schema.Schema{
 				Type:     schema.TypeString,
@@ -65,29 +66,11 @@ func schemaTemplateTriggerPrototype() *schema.Resource {
 	}
 }
 
-func resourceZabbixlldRuleLinkCreate(d *schema.ResourceData, meta interface{}) error {
-	d.SetId(randStringNumber(5))
-	return resourceZabbixlldRuleLinkReadTrusted(d, meta)
+func resourceZabbixLLDRuleLinkCreate(d *schema.ResourceData, meta interface{}) error {
+	return resourceZabbixLLDRuleLinkRead(d, meta)
 }
 
-func resourceZabbixlldRuleLinkRead(d *schema.ResourceData, meta interface{}) error {
-	api := meta.(*zabbix.API)
-
-	itemsTerraform, err := getTerraformTemplateItemPrototypesForPlan(d, api)
-	if err != nil {
-		return err
-	}
-	d.Set("item_prototype", itemsTerraform)
-
-	triggersTerraform, err := getTerraformTemplateTriggerPrototypesForPlan(d, api)
-	if err != nil {
-		return err
-	}
-	d.Set("trigger_prototype", triggersTerraform)
-	return nil
-}
-
-func resourceZabbixlldRuleLinkReadTrusted(d *schema.ResourceData, meta interface{}) error {
+func resourceZabbixLLDRuleLinkRead(d *schema.ResourceData, meta interface{}) error {
 	api := meta.(*zabbix.API)
 
 	itemsTerraform, err := getTerraformTemplateItemPrototypes(d, api)
@@ -101,14 +84,16 @@ func resourceZabbixlldRuleLinkReadTrusted(d *schema.ResourceData, meta interface
 		return err
 	}
 	d.Set("trigger_prototype", triggersTerraform)
+
+	d.SetId(d.Get("lld_rule_id").(string))
 	return nil
 }
 
-func resourceZabbixlldRuleLinkExist(d *schema.ResourceData, meta interface{}) (bool, error) {
+func resourceZabbixLLDRuleLinkExists(d *schema.ResourceData, meta interface{}) (bool, error) {
 	return true, nil
 }
 
-func resourceZabbixlldRuleLinkUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceZabbixLLDRuleLinkUpdate(d *schema.ResourceData, meta interface{}) error {
 	api := meta.(*zabbix.API)
 
 	err := updateZabbixTemplateItemPrototypes(d, api)
@@ -120,10 +105,10 @@ func resourceZabbixlldRuleLinkUpdate(d *schema.ResourceData, meta interface{}) e
 	if err != nil {
 		return err
 	}
-	return resourceZabbixlldRuleLinkReadTrusted(d, meta)
+	return resourceZabbixLLDRuleLinkRead(d, meta)
 }
 
-func resourceZabbixlldRuleLinkDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceZabbixLLDRuleLinkDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
@@ -369,17 +354,4 @@ func updateZabbixTemplateTriggerPrototypes(d *schema.ResourceData, api *zabbix.A
 		}
 	}
 	return nil
-}
-
-func resourceZabbixlldRuleLinkParseID(ID string) (templateID string, itemID []string, triggerID []string, err error) {
-	parseID := strings.Split(ID, "_")
-	if len(parseID) != 3 {
-		err = fmt.Errorf(`Expected id format TEMPLATEID_ITEMID_TRIGGERID,
-		if you have multiple ITEMID and TRIGGERID use "." to separate the id`)
-		return
-	}
-	templateID = parseID[0]
-	itemID = strings.Split(parseID[1], ".")
-	triggerID = strings.Split(parseID[2], ".")
-	return
 }

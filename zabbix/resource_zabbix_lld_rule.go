@@ -95,16 +95,9 @@ func schemaLLDRuleFilterCondition() *schema.Resource {
 }
 
 func resourceZabbixLLDRuleCreate(d *schema.ResourceData, meta interface{}) error {
-	api := meta.(*zabbix.API)
 	rule := createLLDRuleObject(d)
-	rules := zabbix.LLDRules{rule}
 
-	err := api.DiscoveryRulesCreate(rules)
-	if err != nil {
-		return err
-	}
-	d.SetId(rules[0].ItemID)
-	return resourceZabbixLLDRuleRead(d, meta)
+	return createRetry(d, meta, createLLDRule, rule, resourceZabbixLLDRuleRead)
 }
 
 func resourceZabbixLLDRuleRead(d *schema.ResourceData, meta interface{}) error {
@@ -166,16 +159,10 @@ func resourceZabbixLLDRuleExists(d *schema.ResourceData, meta interface{}) (bool
 }
 
 func resourceZabbixLLDRuleUpdate(d *schema.ResourceData, meta interface{}) error {
-	api := meta.(*zabbix.API)
 	rule := createLLDRuleObject(d)
-	rule.ItemID = d.Id()
-	rules := zabbix.LLDRules{rule}
 
-	err := api.DiscoveryRulesUpdate(rules)
-	if err != nil {
-		return err
-	}
-	return resourceZabbixLLDRuleRead(d, meta)
+	rule.ItemID = d.Id()
+	return createRetry(d, meta, updateLLDRule, rule, resourceZabbixLLDRuleRead)
 }
 
 func resourceZabbixLLDRuleDelete(d *schema.ResourceData, meta interface{}) error {
@@ -215,4 +202,26 @@ func createLLDRuleConditionObject(d *schema.ResourceData) zabbix.LLDRuleFilter {
 		filterObject.Conditions = append(filterObject.Conditions, cond)
 	}
 	return filterObject
+}
+
+func createLLDRule(rule interface{}, api *zabbix.API) (id string, err error) {
+	rules := zabbix.LLDRules{rule.(zabbix.LLDRule)}
+
+	err = api.DiscoveryRulesCreate(rules)
+	if err != nil {
+		return
+	}
+	id = rules[0].ItemID
+	return
+}
+
+func updateLLDRule(rule interface{}, api *zabbix.API) (id string, err error) {
+	rules := zabbix.LLDRules{rule.(zabbix.LLDRule)}
+
+	err = api.DiscoveryRulesUpdate(rules)
+	if err != nil {
+		return
+	}
+	id = rules[0].ItemID
+	return
 }
