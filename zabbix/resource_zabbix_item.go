@@ -69,10 +69,11 @@ func resourceZabbixItem() *schema.Resource {
 					return
 				},
 			},
-			"data_type": &schema.Schema{ // Remove in zabbix 3.4
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  0,
+			"data_type": &schema.Schema{
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Default:     0,
+				Description: "Remove in zabbix 3.4. Data type of the item prototype.",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 					v := val.(int)
 					if v < 0 || v > 3 {
@@ -81,10 +82,10 @@ func resourceZabbixItem() *schema.Resource {
 					return
 				},
 			},
-			"delta": &schema.Schema{ // Remove in zabbix 3.4
+			"delta": &schema.Schema{
 				Type:        schema.TypeInt,
 				Optional:    true,
-				Description: "Value that will be stored. ",
+				Description: "Remove in zabbix 3.4. Value that will be stored. ",
 				Default:     0,
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 					v := val.(int)
@@ -117,9 +118,9 @@ func resourceZabbixItem() *schema.Resource {
 				Description: "Number of days to keep item's trends data. Default: 365. ",
 				DefaultFunc: func() (interface{}, error) {
 					if version.Compare(zabbixAPIVersion, "3.4.0", ">=") {
-						return "90d", nil
+						return "365d", nil
 					}
-					return "90", nil
+					return "365", nil
 				},
 			},
 			"trapper_host": &schema.Schema{
