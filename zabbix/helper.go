@@ -14,9 +14,9 @@ import (
 
 func randStringNumber(length int) string {
 	const charset = "0123456789"
-	str := make([]byte, lenght)
+	str := make([]byte, length)
 
-	for i := 0; i < lenght; i++ {
+	for i := 0; i < length; i++ {
 		str[i] = charset[rand.Intn(len(charset))]
 	}
 	return string(str)
