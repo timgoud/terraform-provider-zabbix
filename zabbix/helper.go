@@ -57,7 +57,7 @@ func deleteRetry(id string, get getParentFunc, delete deleteFunc, api *zabbix.AP
 		deleteIDs, err := delete([]string{id})
 		if err == nil {
 			if len(deleteIDs) != nbExpected {
-				return resource.NonRetryableError(fmt.Errorf("Expected to delete %d object and %d were delete", nbExpected, len(deleteIDs)))
+				return resource.NonRetryableError(fmt.Errorf("Expected to delete %d object and %d were deleted", nbExpected, len(deleteIDs)))
 			}
 			return nil
 		} else if sqlError(err) {
