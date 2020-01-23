@@ -180,7 +180,7 @@ func resourceZabbixItemRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("trends", item.Trends)
 	d.Set("trapper_host", item.TrapperHosts)
 
-	log.Printf("Item name is %s\n", item.Name)
+	log.Printf("[DEBUG] Item name is %s\n", item.Name)
 	return nil
 }
 
@@ -190,7 +190,7 @@ func resourceZabbixItemExist(d *schema.ResourceData, meta interface{}) (bool, er
 	_, err := api.ItemGetByID(d.Id())
 	if err != nil {
 		if strings.Contains(err.Error(), "Expected exactly one result") {
-			log.Printf("Item with id %s doesn't exist", d.Id())
+			log.Printf("[DEBUG] Item with id %s doesn't exist", d.Id())
 			return false, nil
 		}
 		return false, err

@@ -156,7 +156,7 @@ func resourceZabbixTemplateExist(d *schema.ResourceData, meta interface{}) (bool
 	_, err := api.TemplateGetByID(d.Id())
 	if err != nil {
 		if strings.Contains(err.Error(), "Expected exactly one result") {
-			log.Printf("Template with id %s doesn't exist", d.Id())
+			log.Printf("[DEBUG] Template with id %s doesn't exist", d.Id())
 			return false, nil
 		}
 		return false, err

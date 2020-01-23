@@ -112,7 +112,7 @@ func resourceZabbixTriggerExist(d *schema.ResourceData, meta interface{}) (bool,
 	_, err := api.TriggerGetByID(d.Id())
 	if err != nil {
 		if strings.Contains(err.Error(), "Expected exactly one result") {
-			log.Printf("Trigger with id %s doesn't exist", d.Id())
+			log.Printf("[DEBUG] Trigger with id %s doesn't exist", d.Id())
 			return false, nil
 		}
 		return false, err

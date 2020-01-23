@@ -75,7 +75,7 @@ func resourceZabbixHostGroupExist(d *schema.ResourceData, meta interface{}) (boo
 	_, err := api.HostGroupGetByID(d.Id())
 	if err != nil {
 		if strings.Contains(err.Error(), "Expected exactly one result") {
-			log.Printf("Host group with id %s doesn't exist", d.Id())
+			log.Printf("[DEBUG] Host group with id %s doesn't exist", d.Id())
 			return false, nil
 		}
 		return false, err

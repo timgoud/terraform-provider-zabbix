@@ -409,7 +409,7 @@ func resourceZabbixHostUpdate(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	log.Printf("Created host id is %s", hosts[0].HostID)
+	log.Printf("[DEBUG] Created host id is %s", hosts[0].HostID)
 
 	return nil
 }

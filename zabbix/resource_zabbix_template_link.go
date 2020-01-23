@@ -160,7 +160,7 @@ func getTerraformTemplateItemsForPlan(d *schema.ResourceData, api *zabbix.API) (
 		var itemTerraform = make(map[string]interface{})
 		value := item.(map[string]interface{})
 
-		log.Printf("Found local item with id : %s", value["item_id"].(string))
+		log.Printf("[DEBUG] Found local item with id : %s", value["item_id"].(string))
 		itemLocal[value["item_id"].(string)] = true
 		itemTerraform["local"] = true
 		itemTerraform["item_id"] = value["item_id"].(string)
@@ -172,7 +172,7 @@ func getTerraformTemplateItemsForPlan(d *schema.ResourceData, api *zabbix.API) (
 		if itemLocal[item.ItemID] {
 			continue
 		}
-		log.Printf("Found server item with id : %s", item.ItemID)
+		log.Printf("[DEBUG] Found server item with id : %s", item.ItemID)
 		itemTerraform["local"] = false
 		itemTerraform["item_id"] = item.ItemID
 		itemsTerraform = append(itemsTerraform, itemTerraform)
@@ -224,7 +224,7 @@ func getTerraformTemplateTriggersForPlan(d *schema.ResourceData, api *zabbix.API
 		triggerTerraform := make(map[string]interface{})
 		value := trigger.(map[string]interface{})
 
-		log.Printf("Found local trigger with id : %s", value["trigger_id"].(string))
+		log.Printf("[DEBUG] Found local trigger with id : %s", value["trigger_id"].(string))
 		triggerLocal[value["trigger_id"].(string)] = true
 		triggerTerraform["trigger_id"] = value["trigger_id"].(string)
 		triggerTerraform["local"] = true
@@ -236,7 +236,7 @@ func getTerraformTemplateTriggersForPlan(d *schema.ResourceData, api *zabbix.API
 		if triggerLocal[trigger.TriggerID] {
 			continue
 		}
-		log.Printf("Found server trigger with id : %s", trigger.TriggerID)
+		log.Printf("[DEBUG] Found server trigger with id : %s", trigger.TriggerID)
 		triggerTerraform["local"] = false
 		triggerTerraform["trigger_id"] = trigger.TriggerID
 		triggersTerraform = append(triggersTerraform, triggerTerraform)
