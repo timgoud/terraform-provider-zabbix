@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func randStringNumber(lenght int) string {
+func randStringNumber(length int) string {
 	const charset = "0123456789"
 	str := make([]byte, lenght)
 
