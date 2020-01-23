@@ -104,7 +104,7 @@ func resourceZabbixItem() *schema.Resource {
 			"history": &schema.Schema{
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Number of days to keep item's history data. Default: 90. ",
+				Description: "Number of days to keep item's history data. From 3.4 version, string is required instead of integer. Default: 90 (90d for 3.4+). ",
 				DefaultFunc: func() (interface{}, error) {
 					if version.Compare(zabbixAPIVersion, "3.4.0", ">=") {
 						return "90d", nil
@@ -115,7 +115,7 @@ func resourceZabbixItem() *schema.Resource {
 			"trends": &schema.Schema{
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Number of days to keep item's trends data. Default: 365. ",
+				Description: "Number of days to keep item's trends data. From 3.4 version, string is required instead of interger. Default: 365 (365d for 3.4+). ",
 				DefaultFunc: func() (interface{}, error) {
 					if version.Compare(zabbixAPIVersion, "3.4.0", ">=") {
 						return "365d", nil
