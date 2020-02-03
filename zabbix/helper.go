@@ -3,7 +3,6 @@ package provider
 import (
 	"fmt"
 	"log"
-	"math/rand"
 	"strings"
 	"time"
 
@@ -11,16 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
-
-func randStringNumber(length int) string {
-	const charset = "0123456789"
-	str := make([]byte, length)
-
-	for i := 0; i < length; i++ {
-		str[i] = charset[rand.Intn(len(charset))]
-	}
-	return string(str)
-}
 
 func sqlError(err error) bool {
 	if strings.Contains(err.Error(), "SQL statement execution") || strings.Contains(err.Error(), "DBEXECUTE_ERROR") {
