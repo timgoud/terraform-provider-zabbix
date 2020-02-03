@@ -1,15 +1,18 @@
 package provider
 
 import (
-	"github.com/dainis/zabbix"
-	"github.com/hashicorp/terraform/helper/schema"
 	"log"
+	"strings"
+
+	"github.com/claranet/go-zabbix-api"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func resourceZabbixHostGroup() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceZabbixHostGroupCreate,
 		Read:   resourceZabbixHostGroupRead,
+		Exists: resourceZabbixHostGroupExists,
 		Update: resourceZabbixHostGroupUpdate,
 		Delete: resourceZabbixHostGroupDelete,
 		Schema: map[string]*schema.Schema{
@@ -40,12 +43,12 @@ func resourceZabbixHostGroupCreate(d *schema.ResourceData, meta interface{}) err
 		return err
 	}
 
-	groupId := groups[0].GroupId
+	groupID := groups[0].GroupID
 
-	log.Printf("Created host group, id is %s", groupId)
+	log.Printf("[DEBUG] Created host group, id is %s", groupID)
 
-	d.Set("group_id", groupId)
-	d.SetId(groupId)
+	d.Set("group_id", groupID)
+	d.SetId(groupID)
 
 	return nil
 }
@@ -53,9 +56,9 @@ func resourceZabbixHostGroupCreate(d *schema.ResourceData, meta interface{}) err
 func resourceZabbixHostGroupRead(d *schema.ResourceData, meta interface{}) error {
 	api := meta.(*zabbix.API)
 
-	log.Printf("Will read host group with id %s", d.Id())
+	log.Printf("[DEBUG] Will read host group with id %s", d.Id())
 
-	group, err := api.HostGroupGetById(d.Id())
+	group, err := api.HostGroupGetByID(d.Id())
 
 	if err != nil {
 		return err
@@ -66,12 +69,26 @@ func resourceZabbixHostGroupRead(d *schema.ResourceData, meta interface{}) error
 	return nil
 }
 
+func resourceZabbixHostGroupExists(d *schema.ResourceData, meta interface{}) (bool, error) {
+	api := meta.(*zabbix.API)
+
+	_, err := api.HostGroupGetByID(d.Id())
+	if err != nil {
+		if strings.Contains(err.Error(), "Expected exactly one result") {
+			log.Printf("[DEBUG] Host group with id %s doesn't exist", d.Id())
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}
+
 func resourceZabbixHostGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	api := meta.(*zabbix.API)
 
 	hostGroup := zabbix.HostGroup{
 		Name:    d.Get("name").(string),
-		GroupId: d.Id(),
+		GroupID: d.Id(),
 	}
 
 	return api.HostGroupsUpdate(zabbix.HostGroups{hostGroup})
