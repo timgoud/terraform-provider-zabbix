@@ -24,7 +24,7 @@ func TestAccZabbixItem_Basic(t *testing.T) {
 			{
 				Config: testAccZabbixItemConfig(groupName, templateName, itemName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccZabbixItemExist("zabbix_item.my_item1"),
+					testAccZabbixItemExists("zabbix_item.my_item1"),
 					resource.TestCheckResourceAttr("zabbix_item.my_item1", "name", itemName),
 					resource.TestCheckResourceAttr("zabbix_item.my_item1", "key", "bilou.bilou"),
 					resource.TestCheckResourceAttr("zabbix_item.my_item1", "delay", "34"),
@@ -36,7 +36,7 @@ func TestAccZabbixItem_Basic(t *testing.T) {
 			{
 				Config: testAccZabbixItemUpdate(groupName, templateName, itemName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccZabbixItemExist("zabbix_item.my_item1"),
+					testAccZabbixItemExists("zabbix_item.my_item1"),
 					resource.TestCheckResourceAttr("zabbix_item.my_item1", "name", fmt.Sprintf("update_%s", itemName)),
 					resource.TestCheckResourceAttr("zabbix_item.my_item1", "key", "update.bilou.bilou"),
 					resource.TestCheckResourceAttr("zabbix_item.my_item1", "delay", "23"),
@@ -99,7 +99,7 @@ func testAccZabbixItemUpdate(groupName string, templateName string, itemName str
 	`, groupName, templateName, templateName, templateName, itemName, itemName)
 }
 
-func testAccZabbixItemExist(resource string) resource.TestCheckFunc {
+func testAccZabbixItemExists(resource string) resource.TestCheckFunc {
 	return func(state *terraform.State) error {
 		rs, ok := state.RootModule().Resources[resource]
 		if !ok {

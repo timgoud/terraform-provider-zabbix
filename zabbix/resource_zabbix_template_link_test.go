@@ -73,7 +73,7 @@ func TestAccZabbixTemplateLink_DeleteServerItem(t *testing.T) {
 			{
 				Config: testAccZabbixTemplateLinkConfig(),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckTemplateExist("zabbix_template.template_test", &template),
+					testAccCheckTemplateExists("zabbix_template.template_test", &template),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "item.#", "1"),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "server_item.#", "0"),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "trigger.#", "1"),
@@ -115,7 +115,7 @@ func TestAccZabbixTemplateLink_DeleteServerTrigger(t *testing.T) {
 			{
 				Config: testAccZabbixTemplateLinkConfig(),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckTemplateExist("zabbix_template.template_test", &template),
+					testAccCheckTemplateExists("zabbix_template.template_test", &template),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "item.#", "1"),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "server_item.#", "0"),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "trigger.#", "1"),
@@ -257,7 +257,7 @@ func testAccCheckZabbixTemplateLinkDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckTemplateExist(n string, template *zabbix.Template) resource.TestCheckFunc {
+func testAccCheckTemplateExists(n string, template *zabbix.Template) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {

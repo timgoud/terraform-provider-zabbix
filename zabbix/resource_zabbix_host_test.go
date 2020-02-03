@@ -30,7 +30,7 @@ func TestAccZabbixHost_Basic(t *testing.T) {
 			{
 				Config: testAccZabbixHostConfig(host, name, hostGroup),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckZabbixHostExist("zabbix_host.zabbix1", &getHost),
+					testAccCheckZabbixHostExists("zabbix_host.zabbix1", &getHost),
 					testAccCheckZabbixHostAttributes(&getHost, expectedHost, []string{hostGroup}, []string{}),
 					resource.TestCheckResourceAttr("zabbix_host.zabbix1", "host", host),
 				),
@@ -77,7 +77,7 @@ func testAccZabbixHostConfig(host string, name string, hostGroup string) string 
 	)
 }
 
-func testAccCheckZabbixHostExist(resource string, host *zabbix.Host) resource.TestCheckFunc {
+func testAccCheckZabbixHostExists(resource string, host *zabbix.Host) resource.TestCheckFunc {
 	return func(state *terraform.State) error {
 		rs, ok := state.RootModule().Resources[resource]
 		if !ok {

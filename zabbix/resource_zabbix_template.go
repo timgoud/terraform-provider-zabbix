@@ -13,7 +13,7 @@ func resourceZabbixTemplate() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceZabbixTemplateCreate,
 		Read:   resourceZabbixTemplateRead,
-		Exists: resourceZabbixTemplateExist,
+		Exists: resourceZabbixTemplateExists,
 		Update: resourceZabbixTemplateUpdate,
 		Delete: resourceZabbixTemplateDelete,
 		Importer: &schema.ResourceImporter{
@@ -150,7 +150,7 @@ func resourceZabbixTemplateRead(d *schema.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func resourceZabbixTemplateExist(d *schema.ResourceData, meta interface{}) (bool, error) {
+func resourceZabbixTemplateExists(d *schema.ResourceData, meta interface{}) (bool, error) {
 	api := meta.(*zabbix.API)
 
 	_, err := api.TemplateGetByID(d.Id())

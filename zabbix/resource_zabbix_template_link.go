@@ -13,7 +13,7 @@ func resourceZabbixTemplateLink() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceZabbixTemplateLinkCreate,
 		Read:   resourceZabbixTemplateLinkRead,
-		Exists: resourceZabbixTemplateLinkExist,
+		Exists: resourceZabbixTemplateLinkExists,
 		Update: resourceZabbixTemplateLinkUpdate,
 		Delete: resourceZabbixTemplateLinkDelete,
 		Importer: &schema.ResourceImporter{
@@ -117,7 +117,7 @@ func resourceZabbixTemplateLinkReadTrusted(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceZabbixTemplateLinkExist(d *schema.ResourceData, meta interface{}) (bool, error) {
+func resourceZabbixTemplateLinkExists(d *schema.ResourceData, meta interface{}) (bool, error) {
 	return true, nil
 }
 

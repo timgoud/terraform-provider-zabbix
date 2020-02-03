@@ -12,7 +12,7 @@ func resourceZabbixHostGroup() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceZabbixHostGroupCreate,
 		Read:   resourceZabbixHostGroupRead,
-		Exists: resourceZabbixHostGroupExist,
+		Exists: resourceZabbixHostGroupExists,
 		Update: resourceZabbixHostGroupUpdate,
 		Delete: resourceZabbixHostGroupDelete,
 		Schema: map[string]*schema.Schema{
@@ -69,7 +69,7 @@ func resourceZabbixHostGroupRead(d *schema.ResourceData, meta interface{}) error
 	return nil
 }
 
-func resourceZabbixHostGroupExist(d *schema.ResourceData, meta interface{}) (bool, error) {
+func resourceZabbixHostGroupExists(d *schema.ResourceData, meta interface{}) (bool, error) {
 	api := meta.(*zabbix.API)
 
 	_, err := api.HostGroupGetByID(d.Id())

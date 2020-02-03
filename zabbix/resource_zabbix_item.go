@@ -14,7 +14,7 @@ func resourceZabbixItem() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceZabbixItemCreate,
 		Read:   resourceZabbixItemRead,
-		Exists: resourceZabbixItemExist,
+		Exists: resourceZabbixItemExists,
 		Update: resourceZabbixItemUpdate,
 		Delete: resourceZabbixItemDelete,
 		Importer: &schema.ResourceImporter{
@@ -184,7 +184,7 @@ func resourceZabbixItemRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceZabbixItemExist(d *schema.ResourceData, meta interface{}) (bool, error) {
+func resourceZabbixItemExists(d *schema.ResourceData, meta interface{}) (bool, error) {
 	api := meta.(*zabbix.API)
 
 	_, err := api.ItemGetByID(d.Id())

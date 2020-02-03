@@ -13,7 +13,7 @@ func resourceZabbixTrigger() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceZabbixTriggerCreate,
 		Read:   resourceZabbixTriggerRead,
-		Exists: resourceZabbixTriggerExist,
+		Exists: resourceZabbixTriggerExists,
 		Update: resourceZabbixTriggerUpdate,
 		Delete: resourceZabbixTriggerDelete,
 		Importer: &schema.ResourceImporter{
@@ -106,7 +106,7 @@ func resourceZabbixTriggerRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceZabbixTriggerExist(d *schema.ResourceData, meta interface{}) (bool, error) {
+func resourceZabbixTriggerExists(d *schema.ResourceData, meta interface{}) (bool, error) {
 	api := meta.(*zabbix.API)
 
 	_, err := api.TriggerGetByID(d.Id())
