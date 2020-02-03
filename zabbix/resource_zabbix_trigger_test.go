@@ -178,6 +178,8 @@ func testAccZabbixTriggerSimpleConfigUpdate(strID string) string {
 		name = "name_%s"
 		key = "lili.lala"
 		delay = "34"
+		delta = 1
+		type = 2
 		description = "description for item"
 		host_id = "${zabbix_template.template_test.id}"
 	}
