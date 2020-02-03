@@ -118,7 +118,7 @@ func testAccCheckZabbixTriggerDestroy(s *terraform.State) error {
 
 		_, err := api.ItemGetByID(rs.Primary.ID)
 		if err == nil {
-			return fmt.Errorf("Item still exist %s", rs.Primary.ID)
+			return fmt.Errorf("Item still exists %s", rs.Primary.ID)
 		}
 
 		expectedError := "Expected exactly one result, got 0."
