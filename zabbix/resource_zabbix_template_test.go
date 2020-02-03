@@ -91,7 +91,7 @@ func TestAccZabbixTemplate_UserMacro(t *testing.T) {
 	})
 }
 
-func TestAccZabbixTemplate_linkedTempalte(t *testing.T) {
+func TestAccZabbixTemplate_linkedTemplate(t *testing.T) {
 	resource1Name := "zabbix_template.template_test_1"
 	resource2Name := "zabbix_template.template_test_2"
 	strID := acctest.RandString(5)
