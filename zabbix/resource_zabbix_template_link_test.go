@@ -148,14 +148,16 @@ func testAccZabbixTemplateLinkConfig() string {
 			groups = ["${zabbix_host_group.zabbix.name}"]
 			name = "display name for template test"
 	  	}
-	  
+
 		resource "zabbix_item" "item_test_0" {
 			name = "item_test_0"
 			key = "bilou.bilou"
 			delay = "34"
+			trends = "300%s"
+			history = "25%s"
 			host_id = "${zabbix_template.template_test.id}"
 		}
-		
+
 		resource "zabbix_trigger" "trigger_test_0" {
 			description = "trigger_test_0"
 			expression  = "{${zabbix_template.template_test.host}:${zabbix_item.item_test_0.key}.last()} = 0"
@@ -171,7 +173,7 @@ func testAccZabbixTemplateLinkConfig() string {
 				trigger_id = zabbix_trigger.trigger_test_0.id
 			}
 		}
-	`)
+	`, testGetDayUnit(), testGetDayUnit())
 }
 
 func testAccZabbixTemplateLinkDeleteTrigger() string {
@@ -185,7 +187,7 @@ func testAccZabbixTemplateLinkDeleteTrigger() string {
 			groups = ["${zabbix_host_group.zabbix.name}"]
 			name = "display name for template test"
 	  	}
-	  
+
 		resource "zabbix_item" "item_test_0" {
 			name = "item_test_0"
 			key = "bilou.bilou"
@@ -213,7 +215,7 @@ func testAccZabbixTemplateLinkDeleteItem() string {
 			groups = ["${zabbix_host_group.zabbix.name}"]
 			name = "display name for template test"
 		  }
-		  
+
 		resource "zabbix_template_link" "template_link_test" {
 			template_id = zabbix_template.template_test.id
 		}

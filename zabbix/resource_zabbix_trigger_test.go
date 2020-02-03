@@ -145,6 +145,10 @@ func testAccZabbixTriggerSimpleConfig(strID string) string {
 		name = "name_%s"
 		key = "lili.lala"
 		delay = "34"
+		trends = "300%s"
+		history = "25%s"
+		delta = 1
+		type = 2
 		description = "description for item"
 		host_id = "${zabbix_template.template_test.id}"
 	}
@@ -155,7 +159,7 @@ func testAccZabbixTriggerSimpleConfig(strID string) string {
 		comment = "trigger_comment"
 		priority = 5
 		status = 1
-	}`, strID, strID, strID, strID)
+	}`, strID, strID, strID, testGetDayUnit(), testGetDayUnit(), strID)
 }
 
 func testAccZabbixTriggerSimpleConfigUpdate(strID string) string {
@@ -203,6 +207,10 @@ func testAccZabbixTriggerOmitEmpty(strID string) string {
 		name = "name_%s"
 		key = "lili.lala"
 		delay = "34"
+		trends = "300%s"
+		history = "25%s"
+		delta = 1
+		type = 2
 		description = "description for item"
 		host_id = "${zabbix_template.template_test.id}"
 	}
@@ -210,7 +218,7 @@ func testAccZabbixTriggerOmitEmpty(strID string) string {
 	resource "zabbix_trigger" "trigger_test" {
 		description = "update_trigger_%s"
 		expression = "{${zabbix_template.template_test.host}:${zabbix_item.item_test.key}.min(1)}=0"
-	}`, strID, strID, strID, strID)
+	}`, strID, strID, strID, testGetDayUnit(), testGetDayUnit(), strID)
 }
 
 func testAccZabbixTriggerMacroConfig(strID string) string {
@@ -233,6 +241,10 @@ func testAccZabbixTriggerMacroConfig(strID string) string {
 		name = "name_%s"
 		key = "lili.lala"
 		delay = "34"
+		trends = "300%s"
+		history = "25%s"
+		delta = 1
+		type = 2
 		description = "description for item"
 		host_id = "${zabbix_template.template_test.id}"
 	}
@@ -243,7 +255,7 @@ func testAccZabbixTriggerMacroConfig(strID string) string {
 		comment = "trigger_comment"
 		priority = 5
 		status = 1
-	}`, strID, strID, strID, strID)
+	}`, strID, strID, strID, testGetDayUnit(), testGetDayUnit(), strID)
 }
 
 func testAccZabbixTriggerMacroConfigUpdate(strID string) string {
@@ -266,6 +278,10 @@ func testAccZabbixTriggerMacroConfigUpdate(strID string) string {
 		name = "name_%s"
 		key = "lili.lala"
 		delay = "34"
+		trends = "300%s"
+		history = "25%s"
+		delta = 1
+		type = 2
 		description = "description for item"
 		host_id = "${zabbix_template.template_test.id}"
 	}
@@ -276,7 +292,7 @@ func testAccZabbixTriggerMacroConfigUpdate(strID string) string {
 		comment = "update_trigger_comment"
 		priority = 3
 		status = 0
-	}`, strID, strID, strID, strID)
+	}`, strID, strID, strID, testGetDayUnit(), testGetDayUnit(), strID)
 }
 
 func testAccZabbixTriggerDependencies(strID string) string {
@@ -295,6 +311,10 @@ func testAccZabbixTriggerDependencies(strID string) string {
 		name = "name_%s"
 		key = "lili.lala"
 		delay = "34"
+		trends = "300%s"
+		history = "25%s"
+		delta = 1
+		type = 2
 		description = "description for item"
 		host_id = "${zabbix_template.template_test.id}"
 	}
@@ -316,5 +336,5 @@ func testAccZabbixTriggerDependencies(strID string) string {
 			zabbix_trigger.trigger_test.id,
 			zabbix_trigger.trigger_test_2.id,
 		]
-	}`, strID, strID, strID, strID, strID, strID)
+	}`, strID, strID, strID, testGetDayUnit(), testGetDayUnit(), strID, strID, strID)
 }

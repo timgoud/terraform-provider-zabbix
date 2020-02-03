@@ -70,7 +70,7 @@ func testAccZabbixHostConfig(host string, name string, hostGroup string) string 
 			}
 			groups = ["${zabbix_host_group.zabbix.name}"]
 	  	}
-	  
+
 	  	resource "zabbix_host_group" "zabbix" {
 			name = "%s"
 	  	}`, host, name, hostGroup,

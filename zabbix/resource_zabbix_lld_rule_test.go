@@ -80,8 +80,8 @@ func testAccZabbixLLDRuleConfig() string {
 			groups = ["${zabbix_host_group.zabbix.name}"]
 			name = "display name for template test"
 	  	}
-	  
-		
+
+
 		resource "zabbix_lld_rule" "lld_rule_test" {
 			delay = 60
 			host_id = zabbix_template.template_test.id
@@ -111,7 +111,7 @@ func testAccZabbixLLDRuleUpdateConfig() string {
 			groups = ["${zabbix_host_group.zabbix.name}"]
 			name = "display name for template test"
 	  	}
-	  
+
 		resource "zabbix_lld_rule" "lld_rule_test" {
 			delay = 90
 			host_id = zabbix_template.template_test.id
