@@ -7,7 +7,7 @@ import (
 
 func main() {
 	p := plugin.ServeOpts{
-		ProviderFunc: provider.Provider,
+		ProviderFunc: zabbix.Provider,
 	}
 
 	plugin.Serve(&p)
