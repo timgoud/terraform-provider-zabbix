@@ -21,7 +21,7 @@ func TestAccZabbixTemplate_Basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccZabbixTemplateSimpleConfig(strID),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "description", "test_template_description"),
 					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("template_%s", strID)),
 					resource.TestCheckResourceAttr(resourceName, "host", fmt.Sprintf("template_%s", strID)),
@@ -32,7 +32,7 @@ func TestAccZabbixTemplate_Basic(t *testing.T) {
 			},
 			{
 				Config: testAccZabbixTemplateSimpleUpdate(strID),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "description", "update_test_template_description"),
 					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("update_template_%s", strID)),
 					resource.TestCheckResourceAttr(resourceName, "host", fmt.Sprintf("update_template_%s", strID)),
@@ -56,7 +56,7 @@ func TestAccZabbixTemplate_UserMacro(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccZabbixTemplateUserMacro(strID),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "host", fmt.Sprintf("template_%s", strID)),
 					resource.TestCheckResourceAttr(resourceName, "macro.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "macro.MYMACRO1", "value1"),
@@ -64,7 +64,7 @@ func TestAccZabbixTemplate_UserMacro(t *testing.T) {
 			},
 			{
 				Config: testAccZabbixTemplateUserMacroAdd(strID),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "host", fmt.Sprintf("template_%s", strID)),
 					resource.TestCheckResourceAttr(resourceName, "macro.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "macro.MYMACRO1", "value1"),
@@ -73,7 +73,7 @@ func TestAccZabbixTemplate_UserMacro(t *testing.T) {
 			},
 			{
 				Config: testAccZabbixTemplateUserMacroUpdate(strID),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "host", fmt.Sprintf("template_%s", strID)),
 					resource.TestCheckResourceAttr(resourceName, "macro.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "macro.MYMACRO1", "value3"),
@@ -82,7 +82,7 @@ func TestAccZabbixTemplate_UserMacro(t *testing.T) {
 			},
 			{
 				Config: testAccZabbixTemplateUserMacroDelete(strID),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "host", fmt.Sprintf("template_%s", strID)),
 					resource.TestCheckResourceAttr(resourceName, "macro.%", "0"),
 				),
@@ -103,7 +103,7 @@ func TestAccZabbixTemplate_linkedTemplate(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccZabbixTemplateLinkedTemplate(strID),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resource1Name, "host", fmt.Sprintf("template_%s_1", strID)),
 					resource.TestCheckResourceAttr(resource1Name, "groups.#", "1"),
 					resource.TestCheckResourceAttr(resource2Name, "host", fmt.Sprintf("template_%s_2", strID)),
@@ -113,7 +113,7 @@ func TestAccZabbixTemplate_linkedTemplate(t *testing.T) {
 			},
 			{
 				Config: testAccZabbixTemplateLinkedTemplateDelete(strID),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resource1Name, "host", fmt.Sprintf("template_%s_1", strID)),
 					resource.TestCheckResourceAttr(resource1Name, "groups.#", "1"),
 					resource.TestCheckResourceAttr(resource2Name, "host", fmt.Sprintf("template_%s_2", strID)),

@@ -22,7 +22,7 @@ func TestAccZabbixLLDRule_Basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccZabbixLLDRuleConfig(groupName, templateName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("zabbix_lld_rule.lld_rule_test", "delay", "60"),
 					resource.TestCheckResourceAttr("zabbix_lld_rule.lld_rule_test", "interface_id", "0"),
 					resource.TestCheckResourceAttr("zabbix_lld_rule.lld_rule_test", "key", "key.lolo"),
@@ -37,7 +37,7 @@ func TestAccZabbixLLDRule_Basic(t *testing.T) {
 			},
 			{
 				Config: testAccZabbixLLDRuleUpdateConfig(groupName, templateName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("zabbix_lld_rule.lld_rule_test", "delay", "90"),
 					resource.TestCheckResourceAttr("zabbix_lld_rule.lld_rule_test", "interface_id", "0"),
 					resource.TestCheckResourceAttr("zabbix_lld_rule.lld_rule_test", "key", "key.update"),

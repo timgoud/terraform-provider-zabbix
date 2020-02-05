@@ -112,47 +112,6 @@ func resourceZabbixLLDRuleLinkDelete(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func getTerraformTemplateItemPrototypesForPlan(d *schema.ResourceData, api *zabbix.API) ([]interface{}, error) {
-	params := zabbix.Params{
-		"output": "extend",
-		"discoveryids": []string{
-			d.Get("lld_rule_id").(string),
-		},
-		"inherited": false,
-	}
-	items, err := api.ItemPrototypesGet(params)
-	if err != nil {
-		return nil, err
-	}
-
-	itemList := d.Get("item_prototype").(*schema.Set).List()
-	itemLocal := make(map[string]bool)
-	var itemsTerraform []interface{}
-
-	for _, item := range itemList {
-		var itemTerraform = make(map[string]interface{})
-		value := item.(map[string]interface{})
-
-		log.Printf("Found local item prototype with id : %s", value["item_id"].(string))
-		itemLocal[value["item_id"].(string)] = true
-		itemTerraform["local"] = true
-		itemTerraform["item_id"] = value["item_id"].(string)
-		itemsTerraform = append(itemsTerraform, itemTerraform)
-	}
-	for _, item := range items {
-		var itemTerraform = make(map[string]interface{})
-
-		if itemLocal[item.ItemID] {
-			continue
-		}
-		log.Printf("Found server item prototype with id : %s", item.ItemID)
-		itemTerraform["local"] = false
-		itemTerraform["item_id"] = item.ItemID
-		itemsTerraform = append(itemsTerraform, itemTerraform)
-	}
-	return itemsTerraform, nil
-}
-
 func getTerraformTemplateItemPrototypes(d *schema.ResourceData, api *zabbix.API) ([]interface{}, error) {
 	params := zabbix.Params{
 		"output": "extend",
@@ -175,46 +134,6 @@ func getTerraformTemplateItemPrototypes(d *schema.ResourceData, api *zabbix.API)
 		itemsTerraform[i] = itemTerraform
 	}
 	return itemsTerraform, nil
-}
-
-func getTerraformTemplateTriggerPrototypesForPlan(d *schema.ResourceData, api *zabbix.API) ([]interface{}, error) {
-	params := zabbix.Params{
-		"output": "extend",
-		"discoveryids": []string{
-			d.Get("lld_rule_id").(string),
-		},
-		"inherited": false,
-	}
-	triggers, err := api.TriggerPrototypesGet(params)
-	if err != nil {
-		return nil, err
-	}
-
-	triggerList := d.Get("trigger_prototype").(*schema.Set).List()
-	triggerLocal := make(map[string]bool)
-	var triggersTerraform []interface{}
-	for _, trigger := range triggerList {
-		triggerTerraform := make(map[string]interface{})
-		value := trigger.(map[string]interface{})
-
-		log.Printf("Found local trigger prototype with id : %s", value["trigger_id"].(string))
-		triggerLocal[value["trigger_id"].(string)] = true
-		triggerTerraform["trigger_id"] = value["trigger_id"].(string)
-		triggerTerraform["local"] = true
-		triggersTerraform = append(triggersTerraform, triggerTerraform)
-	}
-	for _, trigger := range triggers {
-		var triggerTerraform = make(map[string]interface{})
-
-		if triggerLocal[trigger.TriggerID] {
-			continue
-		}
-		log.Printf("Found server trigger prototype with id : %s", trigger.TriggerID)
-		triggerTerraform["local"] = false
-		triggerTerraform["trigger_id"] = trigger.TriggerID
-		triggersTerraform = append(triggersTerraform, triggerTerraform)
-	}
-	return triggersTerraform, nil
 }
 
 func getTerraformTemplateTriggerPrototypes(d *schema.ResourceData, api *zabbix.API) ([]interface{}, error) {

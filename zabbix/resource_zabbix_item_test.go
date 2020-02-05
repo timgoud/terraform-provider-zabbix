@@ -23,26 +23,34 @@ func TestAccZabbixItem_Basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccZabbixItemConfig(groupName, templateName, itemName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccZabbixItemExists("zabbix_item.my_item1"),
 					resource.TestCheckResourceAttr("zabbix_item.my_item1", "name", itemName),
 					resource.TestCheckResourceAttr("zabbix_item.my_item1", "key", "bilou.bilou"),
 					resource.TestCheckResourceAttr("zabbix_item.my_item1", "delay", "15"),
 					resource.TestCheckResourceAttr("zabbix_item.my_item1", "description", fmt.Sprintf("description for item : %s", itemName)),
-					resource.TestCheckResourceAttr("zabbix_item.my_item1", "trends", fmt.Sprintf("300%s", testZabbixServerUnitDays())),
-					resource.TestCheckResourceAttr("zabbix_item.my_item1", "history", fmt.Sprintf("25%s", testZabbixServerUnitDays())),
+					testCheckResourceAttrValueFunc("zabbix_item.my_item1", "trends", func(zabbixVersion string) string {
+						return fmt.Sprintf("300%s", getZabbixServerUnitDays(zabbixVersion))
+					}),
+					testCheckResourceAttrValueFunc("zabbix_item.my_item1", "history", func(zabbixVersion string) string {
+						return fmt.Sprintf("25%s", getZabbixServerUnitDays(zabbixVersion))
+					}),
 				),
 			},
 			{
 				Config: testAccZabbixItemUpdate(groupName, templateName, itemName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccZabbixItemExists("zabbix_item.my_item1"),
 					resource.TestCheckResourceAttr("zabbix_item.my_item1", "name", fmt.Sprintf("update_%s", itemName)),
 					resource.TestCheckResourceAttr("zabbix_item.my_item1", "key", "update.bilou.bilou"),
 					resource.TestCheckResourceAttr("zabbix_item.my_item1", "delay", "30"),
 					resource.TestCheckResourceAttr("zabbix_item.my_item1", "description", fmt.Sprintf("update description for item : %s", itemName)),
-					resource.TestCheckResourceAttr("zabbix_item.my_item1", "trends", fmt.Sprintf("3%s", testZabbixServerUnitDays())),
-					resource.TestCheckResourceAttr("zabbix_item.my_item1", "history", fmt.Sprintf("2%s", testZabbixServerUnitDays())),
+					testCheckResourceAttrValueFunc("zabbix_item.my_item1", "trends", func(zabbixVersion string) string {
+						return fmt.Sprintf("3%s", getZabbixServerUnitDays(zabbixVersion))
+					}),
+					testCheckResourceAttrValueFunc("zabbix_item.my_item1", "history", func(zabbixVersion string) string {
+						return fmt.Sprintf("2%s", getZabbixServerUnitDays(zabbixVersion))
+					}),
 				),
 			},
 		},

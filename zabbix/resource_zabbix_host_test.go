@@ -29,7 +29,7 @@ func TestAccZabbixHost_Basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccZabbixHostConfig(host, name, hostGroup),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckZabbixHostExists("zabbix_host.zabbix1", &getHost),
 					testAccCheckZabbixHostAttributes(&getHost, expectedHost, []string{hostGroup}, []string{}),
 					resource.TestCheckResourceAttr("zabbix_host.zabbix1", "host", host),

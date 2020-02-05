@@ -9,9 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/logging"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/mcuadros/go-version"
 )
-
-var zabbixAPIVersion = ""
 
 // Provider define the provider and his resources
 func Provider() terraform.ResourceProvider {
@@ -78,13 +77,57 @@ func providerConfigure(d *schema.ResourceData, terraformVersion string) (interfa
 	if _, err := api.Login(d.Get("user").(string), d.Get("password").(string)); err != nil {
 		return nil, err
 	}
-	v, err := api.Version()
-	if err != nil {
-		return nil, err
-	}
-
-	zabbixAPIVersion = v
-	log.Printf("[DEBUG] Zabbix Server version is %s\n", zabbixAPIVersion)
 
 	return api, nil
+}
+
+func getZabbixServerVersion(meta interface{}) string {
+	api := meta.(*zabbix.API)
+	v, err := api.Version()
+	if err != nil {
+		log.Printf("[WARN] Failed to get Zabbix Server version: %v\n", err)
+		return ""
+	}
+	log.Printf("[DEBUG] Zabbix Server version is %s\n", v)
+
+	return v
+}
+
+func isZabbixServerVersion34OrHigher(zabbixVersion string) bool {
+	return version.Compare(zabbixVersion, "3.4.0", ">=")
+}
+
+func getZabbixServerUnitDays(zabbixVersion string) string {
+	if isZabbixServerVersion34OrHigher(zabbixVersion) {
+		return "d"
+	}
+	return ""
+}
+
+func getZabbixServerUnitHours(zabbixVersion string) string {
+	if isZabbixServerVersion34OrHigher(zabbixVersion) {
+		return "h"
+	}
+	return ""
+}
+
+func getZabbixServerUnitMinutes(zabbixVersion string) string {
+	if isZabbixServerVersion34OrHigher(zabbixVersion) {
+		return "m"
+	}
+	return ""
+}
+
+func getZabbixServerUnitSeconds(zabbixVersion string) string {
+	if isZabbixServerVersion34OrHigher(zabbixVersion) {
+		return "s"
+	}
+	return ""
+}
+
+func getZabbixServerUnitWeeks(zabbixVersion string) string {
+	if isZabbixServerVersion34OrHigher(zabbixVersion) {
+		return "w"
+	}
+	return ""
 }

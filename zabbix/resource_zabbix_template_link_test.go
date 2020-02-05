@@ -23,7 +23,7 @@ func TestAccZabbixTemplateLink_Basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccZabbixTemplateLinkConfig(groupName, templateName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "item.#", "1"),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "server_item.#", "0"),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "trigger.#", "1"),
@@ -32,7 +32,7 @@ func TestAccZabbixTemplateLink_Basic(t *testing.T) {
 			},
 			{
 				Config: testAccZabbixTemplateLinkDeleteTrigger(groupName, templateName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "item.#", "1"),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "server_item.#", "0"),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "trigger.#", "0"),
@@ -41,7 +41,7 @@ func TestAccZabbixTemplateLink_Basic(t *testing.T) {
 			},
 			{
 				Config: testAccZabbixTemplateLinkDeleteItem(groupName, templateName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "item.#", "0"),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "server_item.#", "0"),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "trigger.#", "0"),
@@ -50,7 +50,7 @@ func TestAccZabbixTemplateLink_Basic(t *testing.T) {
 			},
 			{
 				Config: testAccZabbixTemplateLinkConfig(groupName, templateName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "item.#", "1"),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "server_item.#", "0"),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "trigger.#", "1"),
@@ -81,7 +81,7 @@ func TestAccZabbixTemplateLink_DeleteServerItem(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccZabbixTemplateLinkConfig(groupName, templateName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckTemplateExists("zabbix_template.template_test", &template),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "item.#", "1"),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "server_item.#", "0"),
@@ -92,7 +92,7 @@ func TestAccZabbixTemplateLink_DeleteServerItem(t *testing.T) {
 			{
 				PreConfig: testAccZabbixTemplateLinkCreateServerItem(template, &item),
 				Config:    testAccZabbixTemplateLinkConfig(groupName, templateName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckTemplateServerItemDelete(&item),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "item.#", "1"),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "server_item.#", "0"),
@@ -127,7 +127,7 @@ func TestAccZabbixTemplateLink_DeleteServerTrigger(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccZabbixTemplateLinkConfig(groupName, templateName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckTemplateExists("zabbix_template.template_test", &template),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "item.#", "1"),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "server_item.#", "0"),
@@ -138,7 +138,7 @@ func TestAccZabbixTemplateLink_DeleteServerTrigger(t *testing.T) {
 			{
 				PreConfig: testAccZabbixTemplateLinkCreateServerTrigger(template, item, &trigger),
 				Config:    testAccZabbixTemplateLinkConfig(groupName, templateName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckTemplateServerTriggerDelete(&trigger),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "item.#", "1"),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "server_item.#", "0"),

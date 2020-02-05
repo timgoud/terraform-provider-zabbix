@@ -5,7 +5,6 @@ import (
 	"log"
 	"strings"
 
-	"github.com/claranet/go-zabbix-api"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/mcuadros/go-version"
 )
@@ -19,6 +18,32 @@ func dataSourceZabbixServer() *schema.Resource {
 				Optional:    true,
 				Computed:    true,
 				Description: "Version of the Zabbix server.",
+			},
+			"compare_version": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "",
+				Description: "Version to compare the Zabbix server version to.",
+			},
+			"server_version_gt": &schema.Schema{
+				Type:        schema.TypeBool,
+				Computed:    true,
+				Description: "Returns true if the version of the Zabbix server is strictly greater than the version provided in `compare_version`.",
+			},
+			"server_version_lt": &schema.Schema{
+				Type:        schema.TypeBool,
+				Computed:    true,
+				Description: "Returns true if the version of the Zabbix server is strictly less than the version provided in `compare_version`.",
+			},
+			"server_version_ge": &schema.Schema{
+				Type:        schema.TypeBool,
+				Computed:    true,
+				Description: "Returns true if the version of the Zabbix server is greater or equal to the version provided in `compare_version`.",
+			},
+			"server_version_le": &schema.Schema{
+				Type:        schema.TypeBool,
+				Computed:    true,
+				Description: "Returns true if the version of the Zabbix server is less or equal to the version provided in `compare_version`.",
 			},
 			"unit_time_days": &schema.Schema{
 				Type:        schema.TypeString,
@@ -55,11 +80,9 @@ func dataSourceZabbixServerRead(d *schema.ResourceData, meta interface{}) (err e
 		serverVersion = v.(string)
 		log.Printf("[DEBUG] Forcing Zabbix Server version to %s\n", serverVersion)
 	} else {
-		api := meta.(*zabbix.API)
-
-		serverVersion, err = api.Version()
-		if err != nil {
-			return err
+		serverVersion = getZabbixServerVersion(meta)
+		if serverVersion == "" {
+			return fmt.Errorf("Failed to get Zabbix Server version")
 		}
 
 		log.Printf("[DEBUG] Actual Zabbix Server version is %s\n", serverVersion)
@@ -68,18 +91,18 @@ func dataSourceZabbixServerRead(d *schema.ResourceData, meta interface{}) (err e
 	d.SetId(fmt.Sprintf("zabbix_server_%s", strings.ReplaceAll(serverVersion, ".", "_")))
 	d.Set("server_version", serverVersion)
 
-	if version.Compare(serverVersion, "3.4.0", ">=") {
-		d.Set("unit_time_days", "d")
-		d.Set("unit_time_hours", "h")
-		d.Set("unit_time_minutes", "m")
-		d.Set("unit_time_seconds", "s")
-		d.Set("unit_time_weeks", "w")
-	} else {
-		d.Set("unit_time_days", "")
-		d.Set("unit_time_hours", "")
-		d.Set("unit_time_minutes", "")
-		d.Set("unit_time_seconds", "")
-		d.Set("unit_time_weeks", "")
+	d.Set("unit_time_days", getZabbixServerUnitDays(serverVersion))
+	d.Set("unit_time_hours", getZabbixServerUnitHours(serverVersion))
+	d.Set("unit_time_minutes", getZabbixServerUnitMinutes(serverVersion))
+	d.Set("unit_time_seconds", getZabbixServerUnitSeconds(serverVersion))
+	d.Set("unit_time_weeks", getZabbixServerUnitWeeks(serverVersion))
+
+	if v, ok := d.GetOkExists("compare_version"); ok {
+		compareVersion := v.(string)
+		d.Set("server_version_gt", version.Compare(serverVersion, compareVersion, ">"))
+		d.Set("server_version_lt", version.Compare(serverVersion, compareVersion, "<"))
+		d.Set("server_version_ge", version.Compare(serverVersion, compareVersion, ">="))
+		d.Set("server_version_le", version.Compare(serverVersion, compareVersion, "<="))
 	}
 
 	return nil

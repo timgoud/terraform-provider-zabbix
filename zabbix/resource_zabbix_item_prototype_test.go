@@ -22,7 +22,7 @@ func TestAccZabbixItemPrototype_Basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccZabbixItemPrototypeConfig(groupName, templateName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("zabbix_item_prototype.item_prototype_test", "delay", "60"),
 					resource.TestCheckResourceAttr("zabbix_item_prototype.item_prototype_test", "interface_id", "0"),
 					resource.TestCheckResourceAttr("zabbix_item_prototype.item_prototype_test", "key", "test.key"),
@@ -33,7 +33,7 @@ func TestAccZabbixItemPrototype_Basic(t *testing.T) {
 			},
 			{
 				Config: testAccZabbixItemPrototypeUpdateConfig(groupName, templateName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("zabbix_item_prototype.item_prototype_test", "delay", "90"),
 					resource.TestCheckResourceAttr("zabbix_item_prototype.item_prototype_test", "interface_id", "0"),
 					resource.TestCheckResourceAttr("zabbix_item_prototype.item_prototype_test", "key", "test.key.update"),

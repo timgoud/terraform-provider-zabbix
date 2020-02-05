@@ -7,7 +7,6 @@ import (
 
 	"github.com/claranet/go-zabbix-api"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/mcuadros/go-version"
 )
 
 func resourceZabbixItem() *schema.Resource {
@@ -73,7 +72,7 @@ func resourceZabbixItem() *schema.Resource {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Default:     0,
-				Description: "Remove in zabbix 3.4. Data type of the item prototype.",
+				Description: "Data type of the item (Removed in Zabbix 3.4).",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 					v := val.(int)
 					if v < 0 || v > 3 {
@@ -85,8 +84,8 @@ func resourceZabbixItem() *schema.Resource {
 			"delta": &schema.Schema{
 				Type:        schema.TypeInt,
 				Optional:    true,
-				Description: "Remove in zabbix 3.4. Value that will be stored. ",
 				Default:     0,
+				Description: "Value that will be stored (Removed in Zabbix 3.4).",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 					v := val.(int)
 					if v < 0 || v > 2 {
@@ -103,25 +102,15 @@ func resourceZabbixItem() *schema.Resource {
 			},
 			"history": &schema.Schema{
 				Type:        schema.TypeString,
+				Computed:    true,
 				Optional:    true,
 				Description: "Number of days to keep item's history data. From 3.4 version, string is required instead of integer. Default: 90 (90d for 3.4+). ",
-				DefaultFunc: func() (interface{}, error) {
-					if version.Compare(zabbixAPIVersion, "3.4.0", ">=") {
-						return "90d", nil
-					}
-					return "90", nil
-				},
 			},
 			"trends": &schema.Schema{
 				Type:        schema.TypeString,
+				Computed:    true,
 				Optional:    true,
 				Description: "Number of days to keep item's trends data. From 3.4 version, string is required instead of interger. Default: 365 (365d for 3.4+). ",
-				DefaultFunc: func() (interface{}, error) {
-					if version.Compare(zabbixAPIVersion, "3.4.0", ">=") {
-						return "365d", nil
-					}
-					return "365", nil
-				},
 			},
 			"trapper_host": &schema.Schema{
 				Type:        schema.TypeString,
@@ -149,6 +138,7 @@ func createItemObject(d *schema.ResourceData) *zabbix.Item {
 		Trends:       d.Get("trends").(string),
 		TrapperHosts: d.Get("trapper_host").(string),
 	}
+
 	return &item
 }
 

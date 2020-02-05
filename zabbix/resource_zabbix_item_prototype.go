@@ -7,7 +7,6 @@ import (
 
 	"github.com/claranet/go-zabbix-api"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/mcuadros/go-version"
 )
 
 func resourceZabbixItemPrototype() *schema.Resource {
@@ -74,9 +73,10 @@ func resourceZabbixItemPrototype() *schema.Resource {
 				Optional: true,
 			},
 			"data_type": &schema.Schema{
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  0,
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Default:     0,
+				Description: "Data type of the item prototype (Removed in Zabbix 3.4).",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 					v := val.(int)
 					if v < 0 || v > 3 {
@@ -84,13 +84,12 @@ func resourceZabbixItemPrototype() *schema.Resource {
 					}
 					return
 				},
-				Description: "Remove in zabbix 3.4. Data type of the item prototype.",
 			},
 			"delta": &schema.Schema{
 				Type:        schema.TypeInt,
 				Optional:    true,
-				Description: "Remove in zabbix 3.4. Value that will be stored.",
 				Default:     0,
+				Description: "Value that will be stored (Removed in Zabbix 3.4).",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 					v := val.(int)
 					if v < 0 || v > 2 {
@@ -107,25 +106,15 @@ func resourceZabbixItemPrototype() *schema.Resource {
 			},
 			"history": &schema.Schema{
 				Type:        schema.TypeString,
+				Computed:    true,
 				Optional:    true,
 				Description: "Number of days to keep item's history data. Default: 90. ",
-				DefaultFunc: func() (interface{}, error) {
-					if version.Compare(zabbixAPIVersion, "3.4.0", ">=") {
-						return "90d", nil
-					}
-					return "90", nil
-				},
 			},
 			"trends": &schema.Schema{
 				Type:        schema.TypeString,
+				Computed:    true,
 				Optional:    true,
 				Description: "Number of days to keep item's trends data. Default: 365. ",
-				DefaultFunc: func() (interface{}, error) {
-					if version.Compare(zabbixAPIVersion, "3.4.0", ">=") {
-						return "365d", nil
-					}
-					return "365", nil
-				},
 			},
 			"trapper_host": &schema.Schema{
 				Type:        schema.TypeString,
@@ -207,7 +196,7 @@ func resourceZabbixItemPrototypeRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("trapper_host", item.TrapperHosts)
 	d.Set("status", item.Status)
 
-	log.Printf("Item prototype name is %s\n", item.Name)
+	log.Printf("[DEBUG] Item prototype name is %s\n", item.Name)
 	return nil
 }
 
@@ -217,7 +206,7 @@ func resourceZabbixItemPrototypeExist(d *schema.ResourceData, meta interface{}) 
 	_, err := api.ItemPrototypeGetByID(d.Id())
 	if err != nil {
 		if strings.Contains(err.Error(), "Expected exactly one result") {
-			log.Printf("Item prototype with id %s doesn't exist", d.Id())
+			log.Printf("[DEBUG] Item prototype with id %s doesn't exist", d.Id())
 			return false, nil
 		}
 		return false, err

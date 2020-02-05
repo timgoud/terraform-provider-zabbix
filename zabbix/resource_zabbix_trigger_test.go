@@ -21,7 +21,7 @@ func TestAccZabbixTrigger_Basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccZabbixTriggerSimpleConfig(strID),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "description", fmt.Sprintf("trigger_%s", strID)),
 					resource.TestCheckResourceAttr(resourceName, "expression", fmt.Sprintf("{template_%s:lili.lala.last()}=0", strID)),
 					resource.TestCheckResourceAttr(resourceName, "comment", "trigger_comment"),
@@ -31,7 +31,7 @@ func TestAccZabbixTrigger_Basic(t *testing.T) {
 			},
 			{
 				Config: testAccZabbixTriggerSimpleConfigUpdate(strID),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "description", fmt.Sprintf("update_trigger_%s", strID)),
 					resource.TestCheckResourceAttr(resourceName, "expression", fmt.Sprintf("{template_%s:lili.lala.min(1)}=0", strID)),
 					resource.TestCheckResourceAttr(resourceName, "comment", "update_trigger_comment"),
@@ -41,7 +41,7 @@ func TestAccZabbixTrigger_Basic(t *testing.T) {
 			},
 			{
 				Config: testAccZabbixTriggerOmitEmpty(strID),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "description", fmt.Sprintf("update_trigger_%s", strID)),
 					resource.TestCheckResourceAttr(resourceName, "expression", fmt.Sprintf("{template_%s:lili.lala.min(1)}=0", strID)),
 					resource.TestCheckResourceAttr(resourceName, "comment", ""),
@@ -65,7 +65,7 @@ func TestAccZabbixTrigger_BasicMacro(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccZabbixTriggerMacroConfig(strID),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "description", fmt.Sprintf("trigger_%s", strID)),
 					resource.TestCheckResourceAttr(resourceName, "expression", fmt.Sprintf("{template_%s:lili.lala.min({$MACRO_TRIGGER})}=0", strID)),
 					resource.TestCheckResourceAttr(resourceName, "comment", "trigger_comment"),
@@ -75,7 +75,7 @@ func TestAccZabbixTrigger_BasicMacro(t *testing.T) {
 			},
 			{
 				Config: testAccZabbixTriggerMacroConfigUpdate(strID),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "description", fmt.Sprintf("update_trigger_%s", strID)),
 					resource.TestCheckResourceAttr(resourceName, "expression", fmt.Sprintf("{template_%s:lili.lala.min({$MACRO_UPDATE})}=0", strID)),
 					resource.TestCheckResourceAttr(resourceName, "comment", "update_trigger_comment"),
@@ -98,7 +98,7 @@ func TestAccZabbixTrigger_BasicDependencies(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccZabbixTriggerDependencies(strID),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "description", fmt.Sprintf("trigger_3_%s", strID)),
 					resource.TestCheckResourceAttr(resourceName, "expression", fmt.Sprintf("{template_%s:lili.lala.last()}=0", strID)),
 					resource.TestCheckResourceAttr(resourceName, "dependencies.#", "2"),
@@ -131,7 +131,9 @@ func testAccCheckZabbixTriggerDestroy(s *terraform.State) error {
 
 func testAccZabbixTriggerSimpleConfig(strID string) string {
 	return fmt.Sprintf(`
-	data "zabbix_server" "test" {}
+	data "zabbix_server" "compare_to_3_4_0" {
+		compare_version = "3.4.0"
+	}
 
 	resource "zabbix_host_group" "host_group_test" {
 		name = "host_group_%s"
@@ -146,10 +148,10 @@ func testAccZabbixTriggerSimpleConfig(strID string) string {
 	resource "zabbix_item" "item_test" {
 		name = "name_%s"
 		key = "lili.lala"
-		delay = "15"
-		trends = join("", ["300", data.zabbix_server.test.unit_time_days])
-		history = join("", ["25", data.zabbix_server.test.unit_time_days])
-		delta = 1
+		 delay = data.zabbix_server.compare_to_3_4_0.server_version_ge ? "0" : "15" # Zabbix 3.4+ removes this unexpectedly
+		trends = join("", ["300", data.zabbix_server.compare_to_3_4_0.unit_time_days])
+		history = join("", ["25", data.zabbix_server.compare_to_3_4_0.unit_time_days])
+		delta = data.zabbix_server.compare_to_3_4_0.server_version_ge ? 0 : 1
 		type = 2
 		description = "description for item"
 		host_id = "${zabbix_template.template_test.id}"
@@ -166,6 +168,10 @@ func testAccZabbixTriggerSimpleConfig(strID string) string {
 
 func testAccZabbixTriggerSimpleConfigUpdate(strID string) string {
 	return fmt.Sprintf(`
+	data "zabbix_server" "compare_to_3_4_0" {
+		compare_version = "3.4.0"
+	}
+
 	resource "zabbix_host_group" "host_group_test" {
 		name = "host_group_%s"
 	}
@@ -179,8 +185,8 @@ func testAccZabbixTriggerSimpleConfigUpdate(strID string) string {
 	resource "zabbix_item" "item_test" {
 		name = "name_%s"
 		key = "lili.lala"
-		delay = "30"
-		delta = 1
+		delay = data.zabbix_server.compare_to_3_4_0.server_version_ge ? "0" : "30" # Zabbix 3.4+ removes this unexpectedly
+		delta = data.zabbix_server.compare_to_3_4_0.server_version_ge ? 0 : 1
 		type = 2
 		description = "description for item"
 		host_id = "${zabbix_template.template_test.id}"
@@ -197,7 +203,9 @@ func testAccZabbixTriggerSimpleConfigUpdate(strID string) string {
 
 func testAccZabbixTriggerOmitEmpty(strID string) string {
 	return fmt.Sprintf(`
-	data "zabbix_server" "test" {}
+	data "zabbix_server" "compare_to_3_4_0" {
+		compare_version = "3.4.0"
+	}
 
 	resource "zabbix_host_group" "host_group_test" {
 		name = "host_group_%s"
@@ -212,10 +220,10 @@ func testAccZabbixTriggerOmitEmpty(strID string) string {
 	resource "zabbix_item" "item_test" {
 		name = "name_%s"
 		key = "lili.lala"
-		delay = "45"
-		trends = join("", ["300", data.zabbix_server.test.unit_time_days])
-		history = join("", ["25", data.zabbix_server.test.unit_time_days])
-		delta = 1
+		delay = data.zabbix_server.compare_to_3_4_0.server_version_ge ? "0" : "45" # Zabbix 3.4+ removes this unexpectedly
+		trends = join("", ["300", data.zabbix_server.compare_to_3_4_0.unit_time_days])
+		history = join("", ["25", data.zabbix_server.compare_to_3_4_0.unit_time_days])
+		delta = data.zabbix_server.compare_to_3_4_0.server_version_ge ? 0 : 1
 		type = 2
 		description = "description for item"
 		host_id = "${zabbix_template.template_test.id}"
@@ -229,7 +237,9 @@ func testAccZabbixTriggerOmitEmpty(strID string) string {
 
 func testAccZabbixTriggerMacroConfig(strID string) string {
 	return fmt.Sprintf(`
-	data "zabbix_server" "test" {}
+	data "zabbix_server" "compare_to_3_4_0" {
+		compare_version = "3.4.0"
+	}
 
 	resource "zabbix_host_group" "host_group_test" {
 		name = "host_group_%s"
@@ -248,10 +258,10 @@ func testAccZabbixTriggerMacroConfig(strID string) string {
 	resource "zabbix_item" "item_test" {
 		name = "name_%s"
 		key = "lili.lala"
-		delay = "60"
-		trends = join("", ["300", data.zabbix_server.test.unit_time_days])
-		history = join("", ["25", data.zabbix_server.test.unit_time_days])
-		delta = 1
+		delay = data.zabbix_server.compare_to_3_4_0.server_version_ge ? "0" : "60" # Zabbix 3.4+ removes this unexpectedly
+		trends = join("", ["300", data.zabbix_server.compare_to_3_4_0.unit_time_days])
+		history = join("", ["25", data.zabbix_server.compare_to_3_4_0.unit_time_days])
+		delta = data.zabbix_server.compare_to_3_4_0.server_version_ge ? 0 : 1
 		type = 2
 		description = "description for item"
 		host_id = "${zabbix_template.template_test.id}"
@@ -268,7 +278,9 @@ func testAccZabbixTriggerMacroConfig(strID string) string {
 
 func testAccZabbixTriggerMacroConfigUpdate(strID string) string {
 	return fmt.Sprintf(`
-	data "zabbix_server" "test" {}
+	data "zabbix_server" "compare_to_3_4_0" {
+		compare_version = "3.4.0"
+	}
 
 	resource "zabbix_host_group" "host_group_test" {
 		name = "host_group_%s"
@@ -287,10 +299,10 @@ func testAccZabbixTriggerMacroConfigUpdate(strID string) string {
 	resource "zabbix_item" "item_test" {
 		name = "name_%s"
 		key = "lili.lala"
-		delay = "75"
-		trends = join("", ["300", data.zabbix_server.test.unit_time_days])
-		history = join("", ["25", data.zabbix_server.test.unit_time_days])
-		delta = 1
+		delay = data.zabbix_server.compare_to_3_4_0.server_version_ge ? "0" : "75" # Zabbix 3.4+ removes this unexpectedly
+		trends = join("", ["300", data.zabbix_server.compare_to_3_4_0.unit_time_days])
+		history = join("", ["25", data.zabbix_server.compare_to_3_4_0.unit_time_days])
+		delta = data.zabbix_server.compare_to_3_4_0.server_version_ge ? 0 : 1
 		type = 2
 		description = "description for item"
 		host_id = "${zabbix_template.template_test.id}"
@@ -307,7 +319,9 @@ func testAccZabbixTriggerMacroConfigUpdate(strID string) string {
 
 func testAccZabbixTriggerDependencies(strID string) string {
 	return fmt.Sprintf(`
-	data "zabbix_server" "test" {}
+	data "zabbix_server" "compare_to_3_4_0" {
+		compare_version = "3.4.0"
+	}
 
 	resource "zabbix_host_group" "host_group_test" {
 		name = "host_group_%s"
@@ -322,10 +336,10 @@ func testAccZabbixTriggerDependencies(strID string) string {
 	resource "zabbix_item" "item_test" {
 		name = "name_%s"
 		key = "lili.lala"
-		delay = "90"
-		trends = join("", ["300", data.zabbix_server.test.unit_time_days])
-		history = join("", ["25", data.zabbix_server.test.unit_time_days])
-		delta = 1
+		delay = data.zabbix_server.compare_to_3_4_0.server_version_ge ? "0" : "90" # Zabbix 3.4+ removes this unexpectedly
+		trends = join("", ["300", data.zabbix_server.compare_to_3_4_0.unit_time_days])
+		history = join("", ["25", data.zabbix_server.compare_to_3_4_0.unit_time_days])
+		delta = data.zabbix_server.compare_to_3_4_0.server_version_ge ? 0 : 1
 		type = 2
 		description = "description for item"
 		host_id = "${zabbix_template.template_test.id}"

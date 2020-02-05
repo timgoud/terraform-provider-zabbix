@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/mcuadros/go-version"
 )
 
 var testAccProviders map[string]terraform.ResourceProvider
@@ -39,39 +38,9 @@ func testAccPreCheck(t *testing.T) {
 	if v := os.Getenv("ZABBIX_PASSWORD"); v == "" {
 		t.Fatal("ZABBIX_PASSWORD must be set for acceptance tests")
 	}
-}
 
-func testZabbixServerUnitDays() string {
-	if version.Compare(zabbixAPIVersion, "3.4.0", ">=") {
-		return "d"
+	err := testAccProvider.Configure(terraform.NewResourceConfigRaw(nil))
+	if err != nil {
+		t.Fatal(err)
 	}
-	return ""
-}
-
-func testZabbixServerUnitHours() string {
-	if version.Compare(zabbixAPIVersion, "3.4.0", ">=") {
-		return "h"
-	}
-	return ""
-}
-
-func testZabbixServerUnitMinutes() string {
-	if version.Compare(zabbixAPIVersion, "3.4.0", ">=") {
-		return "m"
-	}
-	return ""
-}
-
-func testZabbixServerUnitSeconds() string {
-	if version.Compare(zabbixAPIVersion, "3.4.0", ">=") {
-		return "s"
-	}
-	return ""
-}
-
-func testZabbixServerUnitWeeks() string {
-	if version.Compare(zabbixAPIVersion, "3.4.0", ">=") {
-		return "w"
-	}
-	return ""
 }
