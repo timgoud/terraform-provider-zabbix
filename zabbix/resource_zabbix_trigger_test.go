@@ -131,6 +131,8 @@ func testAccCheckZabbixTriggerDestroy(s *terraform.State) error {
 
 func testAccZabbixTriggerSimpleConfig(strID string) string {
 	return fmt.Sprintf(`
+	data "zabbix_server" "test" {}
+
 	resource "zabbix_host_group" "host_group_test" {
 		name = "host_group_%s"
 	}
@@ -144,9 +146,9 @@ func testAccZabbixTriggerSimpleConfig(strID string) string {
 	resource "zabbix_item" "item_test" {
 		name = "name_%s"
 		key = "lili.lala"
-		delay = "34"
-		trends = "300%s"
-		history = "25%s"
+		delay = "15"
+		trends = join("", ["300", data.zabbix_server.test.unit_time_days])
+		history = join("", ["25", data.zabbix_server.test.unit_time_days])
 		delta = 1
 		type = 2
 		description = "description for item"
@@ -159,7 +161,7 @@ func testAccZabbixTriggerSimpleConfig(strID string) string {
 		comment = "trigger_comment"
 		priority = 5
 		status = 1
-	}`, strID, strID, strID, testGetDayUnit(), testGetDayUnit(), strID)
+	}`, strID, strID, strID, strID)
 }
 
 func testAccZabbixTriggerSimpleConfigUpdate(strID string) string {
@@ -177,7 +179,7 @@ func testAccZabbixTriggerSimpleConfigUpdate(strID string) string {
 	resource "zabbix_item" "item_test" {
 		name = "name_%s"
 		key = "lili.lala"
-		delay = "34"
+		delay = "30"
 		delta = 1
 		type = 2
 		description = "description for item"
@@ -195,6 +197,8 @@ func testAccZabbixTriggerSimpleConfigUpdate(strID string) string {
 
 func testAccZabbixTriggerOmitEmpty(strID string) string {
 	return fmt.Sprintf(`
+	data "zabbix_server" "test" {}
+
 	resource "zabbix_host_group" "host_group_test" {
 		name = "host_group_%s"
 	}
@@ -208,9 +212,9 @@ func testAccZabbixTriggerOmitEmpty(strID string) string {
 	resource "zabbix_item" "item_test" {
 		name = "name_%s"
 		key = "lili.lala"
-		delay = "34"
-		trends = "300%s"
-		history = "25%s"
+		delay = "45"
+		trends = join("", ["300", data.zabbix_server.test.unit_time_days])
+		history = join("", ["25", data.zabbix_server.test.unit_time_days])
 		delta = 1
 		type = 2
 		description = "description for item"
@@ -220,11 +224,13 @@ func testAccZabbixTriggerOmitEmpty(strID string) string {
 	resource "zabbix_trigger" "trigger_test" {
 		description = "update_trigger_%s"
 		expression = "{${zabbix_template.template_test.host}:${zabbix_item.item_test.key}.min(1)}=0"
-	}`, strID, strID, strID, testGetDayUnit(), testGetDayUnit(), strID)
+	}`, strID, strID, strID, strID)
 }
 
 func testAccZabbixTriggerMacroConfig(strID string) string {
 	return fmt.Sprintf(`
+	data "zabbix_server" "test" {}
+
 	resource "zabbix_host_group" "host_group_test" {
 		name = "host_group_%s"
 	}
@@ -242,9 +248,9 @@ func testAccZabbixTriggerMacroConfig(strID string) string {
 	resource "zabbix_item" "item_test" {
 		name = "name_%s"
 		key = "lili.lala"
-		delay = "34"
-		trends = "300%s"
-		history = "25%s"
+		delay = "60"
+		trends = join("", ["300", data.zabbix_server.test.unit_time_days])
+		history = join("", ["25", data.zabbix_server.test.unit_time_days])
 		delta = 1
 		type = 2
 		description = "description for item"
@@ -257,11 +263,13 @@ func testAccZabbixTriggerMacroConfig(strID string) string {
 		comment = "trigger_comment"
 		priority = 5
 		status = 1
-	}`, strID, strID, strID, testGetDayUnit(), testGetDayUnit(), strID)
+	}`, strID, strID, strID, strID)
 }
 
 func testAccZabbixTriggerMacroConfigUpdate(strID string) string {
 	return fmt.Sprintf(`
+	data "zabbix_server" "test" {}
+
 	resource "zabbix_host_group" "host_group_test" {
 		name = "host_group_%s"
 	}
@@ -279,9 +287,9 @@ func testAccZabbixTriggerMacroConfigUpdate(strID string) string {
 	resource "zabbix_item" "item_test" {
 		name = "name_%s"
 		key = "lili.lala"
-		delay = "34"
-		trends = "300%s"
-		history = "25%s"
+		delay = "75"
+		trends = join("", ["300", data.zabbix_server.test.unit_time_days])
+		history = join("", ["25", data.zabbix_server.test.unit_time_days])
 		delta = 1
 		type = 2
 		description = "description for item"
@@ -294,11 +302,13 @@ func testAccZabbixTriggerMacroConfigUpdate(strID string) string {
 		comment = "update_trigger_comment"
 		priority = 3
 		status = 0
-	}`, strID, strID, strID, testGetDayUnit(), testGetDayUnit(), strID)
+	}`, strID, strID, strID, strID)
 }
 
 func testAccZabbixTriggerDependencies(strID string) string {
 	return fmt.Sprintf(`
+	data "zabbix_server" "test" {}
+
 	resource "zabbix_host_group" "host_group_test" {
 		name = "host_group_%s"
 	}
@@ -312,9 +322,9 @@ func testAccZabbixTriggerDependencies(strID string) string {
 	resource "zabbix_item" "item_test" {
 		name = "name_%s"
 		key = "lili.lala"
-		delay = "34"
-		trends = "300%s"
-		history = "25%s"
+		delay = "90"
+		trends = join("", ["300", data.zabbix_server.test.unit_time_days])
+		history = join("", ["25", data.zabbix_server.test.unit_time_days])
 		delta = 1
 		type = 2
 		description = "description for item"
@@ -338,5 +348,5 @@ func testAccZabbixTriggerDependencies(strID string) string {
 			zabbix_trigger.trigger_test.id,
 			zabbix_trigger.trigger_test_2.id,
 		]
-	}`, strID, strID, strID, testGetDayUnit(), testGetDayUnit(), strID, strID, strID)
+	}`, strID, strID, strID, strID, strID, strID)
 }

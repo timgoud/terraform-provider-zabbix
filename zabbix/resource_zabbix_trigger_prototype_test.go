@@ -5,30 +5,35 @@ import (
 	"testing"
 
 	"github.com/claranet/go-zabbix-api"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 func TestAccZabbixTriggerPrototype_Basic(t *testing.T) {
+	strID := acctest.RandString(5)
+	groupName := fmt.Sprintf("host_group_%s", strID)
+	templateName := fmt.Sprintf("template_%s", strID)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckZabbixItemPrototypeDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccZabbixTriggerPrototypeConfig(),
+				Config: testAccZabbixTriggerPrototypeConfig(groupName, templateName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("zabbix_trigger_prototype.trigger_prototype_test", "description", "trigger_prototype_test"),
-					resource.TestCheckResourceAttr("zabbix_trigger_prototype.trigger_prototype_test", "expression", "{template_test:test.key.last()}=0"),
+					resource.TestCheckResourceAttr("zabbix_trigger_prototype.trigger_prototype_test", "expression", fmt.Sprintf("{%s:test.key.last()}=0", templateName)),
 					resource.TestCheckResourceAttr("zabbix_trigger_prototype.trigger_prototype_test", "priority", "5"),
 					resource.TestCheckResourceAttr("zabbix_trigger_prototype.trigger_prototype_test", "status", "0"),
 				),
 			},
 			{
-				Config: testAccZabbixTriggerPrototypeUpdateConfig(),
+				Config: testAccZabbixTriggerPrototypeUpdateConfig(groupName, templateName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("zabbix_trigger_prototype.trigger_prototype_test", "description", "trigger_prototype_test_update"),
-					resource.TestCheckResourceAttr("zabbix_trigger_prototype.trigger_prototype_test", "expression", "{template_test:test.key.last()}=25"),
+					resource.TestCheckResourceAttr("zabbix_trigger_prototype.trigger_prototype_test", "expression", fmt.Sprintf("{%s:test.key.last()}=25", templateName)),
 					resource.TestCheckResourceAttr("zabbix_trigger_prototype.trigger_prototype_test", "priority", "1"),
 					resource.TestCheckResourceAttr("zabbix_trigger_prototype.trigger_prototype_test", "status", "1"),
 				),
@@ -38,13 +43,17 @@ func TestAccZabbixTriggerPrototype_Basic(t *testing.T) {
 }
 
 func TestAccZabbixTriggerPrototype_BasicDependencies(t *testing.T) {
+	strID := acctest.RandString(5)
+	groupName := fmt.Sprintf("host_group_%s", strID)
+	templateName := fmt.Sprintf("template_%s", strID)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckZabbixItemPrototypeDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccZabbixTriggerPrototypeDependenciesConfig(),
+				Config: testAccZabbixTriggerPrototypeDependenciesConfig(groupName, templateName),
 				Check: resource.ComposeTestCheckFunc(
 					checkServerTriggerPrototypeDependencies(),
 					resource.TestCheckResourceAttr("zabbix_trigger_prototype.trigger_prototype_test_1", "dependencies.#", "1"),
@@ -55,34 +64,38 @@ func TestAccZabbixTriggerPrototype_BasicDependencies(t *testing.T) {
 }
 
 func TestAccZabbixTriggerPrototype_ExpressionUpdate(t *testing.T) {
+	strID := acctest.RandString(5)
+	groupName := fmt.Sprintf("host_group_%s", strID)
+	templateName := fmt.Sprintf("template_%s", strID)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckZabbixItemPrototypeDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccZabbixTriggerPrototypeConfig(),
+				Config: testAccZabbixTriggerPrototypeConfig(groupName, templateName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("zabbix_trigger_prototype.trigger_prototype_test", "description", "trigger_prototype_test"),
-					resource.TestCheckResourceAttr("zabbix_trigger_prototype.trigger_prototype_test", "expression", "{template_test:test.key.last()}=0"),
+					resource.TestCheckResourceAttr("zabbix_trigger_prototype.trigger_prototype_test", "expression", fmt.Sprintf("{%s:test.key.last()}=0", templateName)),
 					resource.TestCheckResourceAttr("zabbix_trigger_prototype.trigger_prototype_test", "priority", "5"),
 					resource.TestCheckResourceAttr("zabbix_trigger_prototype.trigger_prototype_test", "status", "0"),
 				),
 			},
 			{
-				Config: testAccZabbixTriggerPrototypeUpdateKeyConfig(),
+				Config: testAccZabbixTriggerPrototypeUpdateKeyConfig(groupName, templateName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("zabbix_trigger_prototype.trigger_prototype_test", "description", "trigger_prototype_test"),
-					resource.TestCheckResourceAttr("zabbix_trigger_prototype.trigger_prototype_test", "expression", "{template_test_update:test.key.last()}=0"),
+					resource.TestCheckResourceAttr("zabbix_trigger_prototype.trigger_prototype_test", "expression", fmt.Sprintf("{%s_update:test.key.last()}=0", templateName)),
 					resource.TestCheckResourceAttr("zabbix_trigger_prototype.trigger_prototype_test", "priority", "5"),
 					resource.TestCheckResourceAttr("zabbix_trigger_prototype.trigger_prototype_test", "status", "0"),
 				),
 			},
 			{
-				Config: testAccZabbixTriggerPrototypeUpdateKeyConfig2(),
+				Config: testAccZabbixTriggerPrototypeUpdateKeyConfig2(groupName, templateName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("zabbix_trigger_prototype.trigger_prototype_test", "description", "trigger_prototype_test"),
-					resource.TestCheckResourceAttr("zabbix_trigger_prototype.trigger_prototype_test", "expression", "{template_test_update:test.key.update.last()}=0"),
+					resource.TestCheckResourceAttr("zabbix_trigger_prototype.trigger_prototype_test", "expression", fmt.Sprintf("{%s_update:test.key.update.last()}=0", templateName)),
 					resource.TestCheckResourceAttr("zabbix_trigger_prototype.trigger_prototype_test", "priority", "5"),
 					resource.TestCheckResourceAttr("zabbix_trigger_prototype.trigger_prototype_test", "status", "0"),
 				),
@@ -112,16 +125,16 @@ func testAccCheckZabbixTriggerPrototypeDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccZabbixTriggerPrototypeConfig() string {
+func testAccZabbixTriggerPrototypeConfig(groupName, templateName string) string {
 	return fmt.Sprintf(`
 		resource "zabbix_host_group" "zabbix" {
-			name = "host group test"
+			name = "host group test %s"
 		}
 
 		resource "zabbix_template" "template_test" {
-			host = "template_test"
+			host = "%s"
 			groups = ["${zabbix_host_group.zabbix.name}"]
-			name = "display name for template test"
+			name = "display name for template test %s"
 	  	}
 
 		resource "zabbix_lld_rule" "lld_rule_test" {
@@ -157,19 +170,19 @@ func testAccZabbixTriggerPrototypeConfig() string {
 			priority = 5
 			status = 0
 		}
-	`)
+	`, groupName, templateName, templateName)
 }
 
-func testAccZabbixTriggerPrototypeUpdateConfig() string {
+func testAccZabbixTriggerPrototypeUpdateConfig(groupName, templateName string) string {
 	return fmt.Sprintf(`
 		resource "zabbix_host_group" "zabbix" {
-			name = "host group test"
+			name = "host group test %s"
 		}
 
 		resource "zabbix_template" "template_test" {
-			host = "template_test"
+			host = "%s"
 			groups = ["${zabbix_host_group.zabbix.name}"]
-			name = "display name for template test"
+			name = "display name for template test %s"
 	  	}
 
 		resource "zabbix_lld_rule" "lld_rule_test" {
@@ -205,19 +218,19 @@ func testAccZabbixTriggerPrototypeUpdateConfig() string {
 			priority = 1
 			status = 1
 		}
-	`)
+	`, groupName, templateName, templateName)
 }
 
-func testAccZabbixTriggerPrototypeDependenciesConfig() string {
+func testAccZabbixTriggerPrototypeDependenciesConfig(groupName, templateName string) string {
 	return fmt.Sprintf(`
 		resource "zabbix_host_group" "zabbix" {
-			name = "host group test"
+			name = "host group test %s"
 		}
 
 		resource "zabbix_template" "template_test" {
-			host = "template_test"
+			host = "%s"
 			groups = ["${zabbix_host_group.zabbix.name}"]
-			name = "display name for template test"
+			name = "display name for template test %s"
 	  	}
 
 		resource "zabbix_lld_rule" "lld_rule_test" {
@@ -261,19 +274,19 @@ func testAccZabbixTriggerPrototypeDependenciesConfig() string {
 				zabbix_trigger_prototype.trigger_prototype_test_0.id
 			]
 		}
-	`)
+	`, groupName, templateName, templateName)
 }
 
-func testAccZabbixTriggerPrototypeUpdateKeyConfig() string {
+func testAccZabbixTriggerPrototypeUpdateKeyConfig(groupName, templateName string) string {
 	return fmt.Sprintf(`
 		resource "zabbix_host_group" "zabbix" {
-			name = "host group test"
+			name = "host group test %s"
 		}
 
 		resource "zabbix_template" "template_test" {
-			host = "template_test_update"
+			host = "%s_update"
 			groups = ["${zabbix_host_group.zabbix.name}"]
-			name = "display name for template test"
+			name = "display name for template test %s"
 	  	}
 
 		resource "zabbix_lld_rule" "lld_rule_test" {
@@ -308,19 +321,19 @@ func testAccZabbixTriggerPrototypeUpdateKeyConfig() string {
 			expression = "{${zabbix_template.template_test.host}:${zabbix_item_prototype.item_prototype_test.key}.last()}=0"
 			priority = 5
 		}
-	`)
+	`, groupName, templateName, templateName)
 }
 
-func testAccZabbixTriggerPrototypeUpdateKeyConfig2() string {
+func testAccZabbixTriggerPrototypeUpdateKeyConfig2(groupName, templateName string) string {
 	return fmt.Sprintf(`
 		resource "zabbix_host_group" "zabbix" {
-			name = "host group test"
+			name = "host group test %s"
 		}
 
 		resource "zabbix_template" "template_test" {
-			host = "template_test_update"
+			host = "%s_update"
 			groups = ["${zabbix_host_group.zabbix.name}"]
-			name = "display name for template test"
+			name = "display name for template test %s"
 	  	}
 
 		resource "zabbix_lld_rule" "lld_rule_test" {
@@ -355,7 +368,7 @@ func testAccZabbixTriggerPrototypeUpdateKeyConfig2() string {
 			expression = "{${zabbix_template.template_test.host}:${zabbix_item_prototype.item_prototype_test.key}.last()}=0"
 			priority = 5
 		}
-	`)
+	`, groupName, templateName, templateName)
 }
 
 func checkServerTriggerPrototypeDependencies() resource.TestCheckFunc {

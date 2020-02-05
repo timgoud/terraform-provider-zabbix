@@ -5,18 +5,23 @@ import (
 	"testing"
 
 	"github.com/claranet/go-zabbix-api"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 func TestAccZabbixItemPrototype_Basic(t *testing.T) {
+	strID := acctest.RandString(5)
+	groupName := fmt.Sprintf("host_group_%s", strID)
+	templateName := fmt.Sprintf("template_%s", strID)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckZabbixItemPrototypeDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccZabbixItemPrototypeConfig(),
+				Config: testAccZabbixItemPrototypeConfig(groupName, templateName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("zabbix_item_prototype.item_prototype_test", "delay", "60"),
 					resource.TestCheckResourceAttr("zabbix_item_prototype.item_prototype_test", "interface_id", "0"),
@@ -27,7 +32,7 @@ func TestAccZabbixItemPrototype_Basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccZabbixItemPrototypeUpdateConfig(),
+				Config: testAccZabbixItemPrototypeUpdateConfig(groupName, templateName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("zabbix_item_prototype.item_prototype_test", "delay", "90"),
 					resource.TestCheckResourceAttr("zabbix_item_prototype.item_prototype_test", "interface_id", "0"),
@@ -62,16 +67,16 @@ func testAccCheckZabbixItemPrototypeDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccZabbixItemPrototypeConfig() string {
+func testAccZabbixItemPrototypeConfig(groupName, templateName string) string {
 	return fmt.Sprintf(`
 		resource "zabbix_host_group" "zabbix" {
-			name = "host group test"
+			name = "host group test %s"
 		}
 
 		resource "zabbix_template" "template_test" {
-			host = "template_test"
+			host = "%s"
 			groups = ["${zabbix_host_group.zabbix.name}"]
-			name = "display name for template test"
+			name = "display name for template_test %s"
 	  	}
 
 		resource "zabbix_lld_rule" "lld_rule_test" {
@@ -100,19 +105,19 @@ func testAccZabbixItemPrototypeConfig() string {
 			type = 0
 			status = 0
 		}
-	`)
+	`, groupName, templateName, templateName)
 }
 
-func testAccZabbixItemPrototypeUpdateConfig() string {
+func testAccZabbixItemPrototypeUpdateConfig(groupName, templateName string) string {
 	return fmt.Sprintf(`
 		resource "zabbix_host_group" "zabbix" {
-			name = "host group test"
+			name = "host group test %s"
 		}
 
 		resource "zabbix_template" "template_test" {
-			host = "template_test"
+			host = "%s"
 			groups = ["${zabbix_host_group.zabbix.name}"]
-			name = "display name for template test"
+			name = "display name for template test %s"
 	  	}
 
 		resource "zabbix_lld_rule" "lld_rule_test" {
@@ -141,5 +146,5 @@ func testAccZabbixItemPrototypeUpdateConfig() string {
 			type = 0
 			status = 1
 		}
-	`)
+	`, groupName, templateName, templateName)
 }

@@ -41,9 +41,37 @@ func testAccPreCheck(t *testing.T) {
 	}
 }
 
-func testGetDayUnit() string {
+func testZabbixServerUnitDays() string {
 	if version.Compare(zabbixAPIVersion, "3.4.0", ">=") {
 		return "d"
+	}
+	return ""
+}
+
+func testZabbixServerUnitHours() string {
+	if version.Compare(zabbixAPIVersion, "3.4.0", ">=") {
+		return "h"
+	}
+	return ""
+}
+
+func testZabbixServerUnitMinutes() string {
+	if version.Compare(zabbixAPIVersion, "3.4.0", ">=") {
+		return "m"
+	}
+	return ""
+}
+
+func testZabbixServerUnitSeconds() string {
+	if version.Compare(zabbixAPIVersion, "3.4.0", ">=") {
+		return "s"
+	}
+	return ""
+}
+
+func testZabbixServerUnitWeeks() string {
+	if version.Compare(zabbixAPIVersion, "3.4.0", ">=") {
+		return "w"
 	}
 	return ""
 }
