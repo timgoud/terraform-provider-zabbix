@@ -2,6 +2,7 @@ package zabbix
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/claranet/go-zabbix-api"
@@ -31,6 +32,10 @@ func Provider() terraform.ResourceProvider {
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ZABBIX_SERVER_URL", nil),
 			},
+		},
+
+		DataSourcesMap: map[string]*schema.Resource{
+			"zabbix_server": dataSourceZabbixServer(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -77,7 +82,9 @@ func providerConfigure(d *schema.ResourceData, terraformVersion string) (interfa
 	if err != nil {
 		return nil, err
 	}
+
 	zabbixAPIVersion = v
+	log.Printf("[DEBUG] Zabbix Server version is %s\n", zabbixAPIVersion)
 
 	return api, nil
 }
