@@ -1,6 +1,6 @@
 ---
 layout: "zabbix"
-page_title: "Provider: ZAbbix"
+page_title: "Provider: Zabbix"
 sidebar_current: "docs-zabbix-index"
 description: |-
   The Zabbix provider is used to interact with zabbix resource. The provider needs to be configured with the proper credentials before it can be used.

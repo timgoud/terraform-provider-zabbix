@@ -1,9 +1,9 @@
 ---
 layout: "zabbix"
-page_title: "Provider: Zabbix"
-sidebar_current: "docs-zabbix-index"
+page_title: "Zabbix: zabbix_lld_rule"
+sidebar_current: "docs-zabbix-resource-lld-rule"
 description: |-
-  The Zabbix provider is used to interact with zabbix resource. The provider needs to be configured with the proper credentials before it can be used.
+  Provides a zabbix lld_rule resource. This can be used to create and manage Zabbix low level discovery rule.
 ---
 
 # zabbix_lld_rule

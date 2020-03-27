@@ -1,9 +1,9 @@
 ---
 layout: "zabbix"
-page_title: "Provider: ZAbbix"
-sidebar_current: "docs-zabbix-template"
+page_title: "Zabbix: zabbix_template_link"
+sidebar_current: "docs-zabbix-resource-template-link"
 description: |-
-  The Zabbix provider is used to interact with zabbix resource. The provider needs to be configured with the proper credentials before it can be used.
+  Provider a virtual resource to track template dependencies such as item, trigger and low level discovery rule.
 ---
 
 # zabbix_template_link

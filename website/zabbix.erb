@@ -1,0 +1,53 @@
+<% wrap_layout :inner do %>
+  <% content_for :sidebar do %>
+    <div class="docs-sidebar hidden-print affix-top" role="complementary">
+      <ul class="nav docs-sidenav">
+        <li<%= sidebar_current("docs-home") %>>
+          <a href="/docs/providers/index.html">All Providers</a>
+        </li>
+
+        <li<%= sidebar_current("docs-zabbix-index") %>>
+          <a href="/docs/providers/zabbix/index.html">Zabbix Provider</a>
+        </li>
+
+        <li<%= sidebar_current("docs-zabbix-data-source") %>>
+          <a href="#">Data Sources</a>
+          <ul class="nav nav-visible">
+            <li<%= sidebar_current("docs-zabbix-data-source-server") %>>
+              <a href="/docs/providers/zabbix/d/server.html">zabbix_server</a>
+            </li>
+          </ul>
+        </li>
+
+        <li<%= sidebar_current("docs-zabbix-resource") %>>
+          <a href="#">Resources</a>
+          <ul class="nav nav-visible">
+            <li<%= sidebar_current("docs-zabbix-resource-item") %>>
+              <a href="/docs/providers/zabbix/r/item.html">zabbix_item</a>
+            </li>
+            <li<%= sidebar_current("docs-zabbix-resource-item-prototype") %>>
+              <a href="/docs/providers/zabbix/r/item_prototype.html">zabbix_item_prototype</a>
+            </li>
+            <li<%= sidebar_current("docs-zabbix-resource-lld-rule") %>>
+              <a href="/docs/providers/zabbix/r/lld_rule.html">zabbix_lld_rule</a>
+            </li>
+            <li<%= sidebar_current("docs-zabbix-resource-template") %>>
+              <a href="/docs/providers/zabbix/r/template.html">zabbix_template</a>
+            </li>
+            <li<%= sidebar_current("docs-zabbix-resource-template-link") %>>
+              <a href="/docs/providers/zabbix/r/template_link.html">zabbix_template_link</a>
+            </li>
+            <li<%= sidebar_current("docs-zabbix-resource-trigger") %>>
+              <a href="/docs/providers/zabbix/r/trigger.html">zabbix_trigger</a>
+            </li>
+            <li<%= sidebar_current("docs-zabbix-resource-trigger-prototype") %>>
+              <a href="/docs/providers/zabbix/r/trigger_prototype.html">zabbix_trigger_prototype</a>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  <% end %>
+
+  <%= yield %>
+<% end %>
