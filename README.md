@@ -1,5 +1,7 @@
+![Build Status](https://github.com/claranet/terraform-provider-gitlab/workflows/Test%20and%20release/badge.svg)
+
 Terraform Provider for Zabbix
-==================
+=============================
 
 - Website: https://www.terraform.io
 - [![Gitter chat](https://badges.gitter.im/hashicorp-terraform/Lobby.png)](https://gitter.im/hashicorp-terraform/Lobby)
