@@ -39,6 +39,6 @@ jobs:
         uses: goreleaser/goreleaser-action@v1
         with:
           version: latest
-          args: release --rm-dist
+          args: release --rm-dist --release-notes <(git tag -l --format='%(tag) (%(taggerdate:short))' $GITHUB_REF ; git tag -l --format='%(body)' $GITHUB_REF)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
