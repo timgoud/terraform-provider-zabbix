@@ -9,13 +9,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceZabbixTrigger() *schema.Resource {
+func resourceZabbixTriggerPrototype() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceZabbixTriggerCreate,
-		Read:   resourceZabbixTriggerRead,
-		Exists: resourceZabbixTriggerExists,
-		Update: resourceZabbixTriggerUpdate,
-		Delete: resourceZabbixTriggerDelete,
+		Create: resourceZabbixTriggerPrototypeCreate,
+		Read:   resourceZabbixTriggerPrototypeRead,
+		Exists: resourceZabbixTriggerPrototypeExist,
+		Update: resourceZabbixTriggerPrototypeUpdate,
+		Delete: resourceZabbixTriggerPrototypeDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -27,10 +27,6 @@ func resourceZabbixTrigger() *schema.Resource {
 			"expression": &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
-			},
-			"comment": &schema.Schema{
-				Type:     schema.TypeString,
-				Optional: true,
 			},
 			"priority": &schema.Schema{
 				Type:     schema.TypeInt,
@@ -66,13 +62,13 @@ func resourceZabbixTrigger() *schema.Resource {
 	}
 }
 
-func resourceZabbixTriggerCreate(d *schema.ResourceData, meta interface{}) error {
-	trigger := createTriggerObj(d)
+func resourceZabbixTriggerPrototypeCreate(d *schema.ResourceData, meta interface{}) error {
+	trigger := createTriggerPrototypeObj(d)
 
-	return createRetry(d, meta, createTrigger, trigger, resourceZabbixTriggerRead)
+	return createRetry(d, meta, createTriggerPrototype, trigger, resourceZabbixTriggerPrototypeRead)
 }
 
-func resourceZabbixTriggerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceZabbixTriggerPrototypeRead(d *schema.ResourceData, meta interface{}) error {
 	api := meta.(*zabbix.API)
 
 	params := zabbix.Params{
@@ -82,7 +78,7 @@ func resourceZabbixTriggerRead(d *schema.ResourceData, meta interface{}) error {
 		"selectItems":        "extend",
 		"triggerids":         d.Id(),
 	}
-	res, err := api.TriggersGet(params)
+	res, err := api.TriggerPrototypesGet(params)
 	if err != nil {
 		return err
 	}
@@ -90,19 +86,12 @@ func resourceZabbixTriggerRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Expected one result got : %d", len(res))
 	}
 	trigger := res[0]
-	err = getTriggerExpression(&trigger, api)
+	err = getTriggerPrototypeExpression(&trigger, api)
 	log.Printf("[DEBUG] trigger expression: %s", trigger.Expression)
 	d.Set("description", trigger.Description)
 	d.Set("expression", trigger.Expression)
-	if trigger.Comments != "" {
-		d.Set("comment", trigger.Comments)
-	}
 	d.Set("priority", trigger.Priority)
-	if trigger.Status != 0 {
-		d.Set("status", trigger.Status)
-	} else {
-		d.Set("value", 0)
-	}
+	d.Set("status", trigger.Status)
 
 	var dependencies []string
 	for _, dependencie := range trigger.Dependencies {
@@ -112,13 +101,13 @@ func resourceZabbixTriggerRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceZabbixTriggerExists(d *schema.ResourceData, meta interface{}) (bool, error) {
+func resourceZabbixTriggerPrototypeExist(d *schema.ResourceData, meta interface{}) (bool, error) {
 	api := meta.(*zabbix.API)
 
-	_, err := api.TriggerGetByID(d.Id())
+	_, err := api.TriggerPrototypeGetByID(d.Id())
 	if err != nil {
 		if strings.Contains(err.Error(), "Expected exactly one result") {
-			log.Printf("[DEBUG] Trigger with id %s doesn't exist", d.Id())
+			log.Printf("Trigger prototype with id %s doesn't exist", d.Id())
 			return false, nil
 		}
 		return false, err
@@ -126,25 +115,24 @@ func resourceZabbixTriggerExists(d *schema.ResourceData, meta interface{}) (bool
 	return true, nil
 }
 
-func resourceZabbixTriggerUpdate(d *schema.ResourceData, meta interface{}) error {
-	trigger := createTriggerObj(d)
-
+func resourceZabbixTriggerPrototypeUpdate(d *schema.ResourceData, meta interface{}) error {
+	trigger := createTriggerPrototypeObj(d)
 	trigger.TriggerID = d.Id()
 	if !d.HasChange("dependencies") {
 		trigger.Dependencies = nil
 	}
-	return createRetry(d, meta, updateTrigger, trigger, resourceZabbixTriggerRead)
+	return createRetry(d, meta, updateTriggerPrototype, trigger, resourceZabbixTriggerPrototypeRead)
 }
 
-func resourceZabbixTriggerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceZabbixTriggerPrototypeDelete(d *schema.ResourceData, meta interface{}) error {
 	api := meta.(*zabbix.API)
 
-	return deleteRetry(d.Id(), getTriggerParentID, api.TriggersDeleteIDs, api)
+	return deleteRetry(d.Id(), getTriggerPrototypeParentID, api.TriggerPrototypesDeleteIDs, api)
 }
 
-func createTriggerDependencies(d *schema.ResourceData) zabbix.Triggers {
+func createTriggerPrototypeDependencies(d *schema.ResourceData) zabbix.TriggerPrototypes {
 	size := d.Get("dependencies.#").(int)
-	dependencies := make(zabbix.Triggers, size)
+	dependencies := make(zabbix.TriggerPrototypes, size)
 
 	terraformDependencies := d.Get("dependencies").(*schema.Set)
 	for i, terraformDependencie := range terraformDependencies.List() {
@@ -153,22 +141,21 @@ func createTriggerDependencies(d *schema.ResourceData) zabbix.Triggers {
 	return dependencies
 }
 
-func createTriggerObj(d *schema.ResourceData) zabbix.Trigger {
-	return zabbix.Trigger{
+func createTriggerPrototypeObj(d *schema.ResourceData) zabbix.TriggerPrototype {
+	return zabbix.TriggerPrototype{
 		Description:  d.Get("description").(string),
 		Expression:   d.Get("expression").(string),
-		Comments:     d.Get("comment").(string),
 		Priority:     zabbix.SeverityType(d.Get("priority").(int)),
 		Status:       zabbix.StatusType(d.Get("status").(int)),
-		Dependencies: createTriggerDependencies(d),
+		Dependencies: createTriggerPrototypeDependencies(d),
 	}
 }
 
-func getTriggerExpression(trigger *zabbix.Trigger, api *zabbix.API) error {
+func getTriggerPrototypeExpression(trigger *zabbix.TriggerPrototype, api *zabbix.API) error {
 	for _, function := range trigger.Functions {
-		var item zabbix.Item
+		var item zabbix.ItemPrototype
 
-		items, err := api.ItemsGet(zabbix.Params{
+		items, err := api.ItemPrototypesGet(zabbix.Params{
 			"output":      "extend",
 			"selectHosts": "extend",
 			"itemids":     function.ItemID,
@@ -180,18 +167,18 @@ func getTriggerExpression(trigger *zabbix.Trigger, api *zabbix.API) error {
 			return fmt.Errorf("Expected one item with id : %s and got : %d", function.ItemID, len(items))
 		}
 		item = items[0]
-		if len(item.ItemParent) != 1 {
-			return fmt.Errorf("Expected one parent host for item with id %s, and got : %d", function.ItemID, len(item.ItemParent))
+		if len(item.Hosts) != 1 {
+			return fmt.Errorf("Expected one parent host for item with id %s, and got : %d", function.ItemID, len(item.Hosts))
 		}
 		idstr := fmt.Sprintf("{%s}", function.FunctionID)
-		expendValue := fmt.Sprintf("{%s:%s.%s(%s)}", item.ItemParent[0].Host, item.Key, function.Function, function.Parameter)
+		expendValue := fmt.Sprintf("{%s:%s.%s(%s)}", item.Hosts[0].Host, item.Key, function.Function, function.Parameter)
 		trigger.Expression = strings.Replace(trigger.Expression, idstr, expendValue, 1)
 	}
 	return nil
 }
 
-func getTriggerParentID(api *zabbix.API, id string) (string, error) {
-	triggers, err := api.TriggersGet(zabbix.Params{
+func getTriggerPrototypeParentID(api *zabbix.API, id string) (string, error) {
+	triggers, err := api.TriggerPrototypesGet(zabbix.Params{
 		"ouput":       "extend",
 		"selectHosts": "extend",
 		"triggerids":  id,
@@ -200,18 +187,18 @@ func getTriggerParentID(api *zabbix.API, id string) (string, error) {
 		return "", err
 	}
 	if len(triggers) != 1 {
-		return "", fmt.Errorf("Expected one item and got %d items", len(triggers))
+		return "", fmt.Errorf("Expected one trigger prototype and got %d trigger prototype", len(triggers))
 	}
 	if len(triggers[0].ParentHosts) != 1 {
-		return "", fmt.Errorf("Expected one parent for item %s and got %d", id, len(triggers[0].ParentHosts))
+		return "", fmt.Errorf("Expected one parent for trigger prototype %s and got %d", id, len(triggers[0].ParentHosts))
 	}
 	return triggers[0].ParentHosts[0].HostID, nil
 }
 
-func createTrigger(trigger interface{}, api *zabbix.API) (id string, err error) {
-	triggers := zabbix.Triggers{trigger.(zabbix.Trigger)}
+func createTriggerPrototype(trigger interface{}, api *zabbix.API) (id string, err error) {
+	triggers := zabbix.TriggerPrototypes{trigger.(zabbix.TriggerPrototype)}
 
-	err = api.TriggersCreate(triggers)
+	err = api.TriggerPrototypesCreate(triggers)
 	if err != nil {
 		return
 	}
@@ -219,10 +206,10 @@ func createTrigger(trigger interface{}, api *zabbix.API) (id string, err error) 
 	return
 }
 
-func updateTrigger(trigger interface{}, api *zabbix.API) (id string, err error) {
-	triggers := zabbix.Triggers{trigger.(zabbix.Trigger)}
+func updateTriggerPrototype(trigger interface{}, api *zabbix.API) (id string, err error) {
+	triggers := zabbix.TriggerPrototypes{trigger.(zabbix.TriggerPrototype)}
 
-	err = api.TriggersUpdate(triggers)
+	err = api.TriggerPrototypesUpdate(triggers)
 	if err != nil {
 		return
 	}

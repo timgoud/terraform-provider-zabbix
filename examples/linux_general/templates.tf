@@ -75,6 +75,19 @@ resource "zabbix_template_link" "base_linux_network_link" {
   }
 }
 
+resource "zabbix_template" "base_linux_filesystem" {
+  host = "Base_Linux_FileSystem"
+  groups = [zabbix_host_group.template_linux.name]
+}
+
+resource "zabbix_template_link" "base_linux_filesystem_link" {
+  template_id = zabbix_template.base_linux_filesystem.id
+
+  lld_rule {
+    lld_rule_id = zabbix_lld_rule.filesystem_discovery_rule.id
+  }
+}
+
 resource "zabbix_template" "standard_linux" {
   host        = "Standard_Linux_General"
   groups      = [zabbix_host_group.template_linux.name]

@@ -1,4 +1,4 @@
-package provider
+package zabbix
 
 import (
 	"fmt"
@@ -6,19 +6,24 @@ import (
 	"testing"
 
 	"github.com/claranet/go-zabbix-api"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 func TestAccZabbixTemplateLink_Basic(t *testing.T) {
+	strID := acctest.RandString(5)
+	groupName := fmt.Sprintf("host_group_%s", strID)
+	templateName := fmt.Sprintf("template_%s", strID)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckZabbixTemplateLinkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccZabbixTemplateLinkConfig(),
-				Check: resource.ComposeTestCheckFunc(
+				Config: testAccZabbixTemplateLinkConfig(groupName, templateName),
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "item.#", "1"),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "server_item.#", "0"),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "trigger.#", "1"),
@@ -26,8 +31,8 @@ func TestAccZabbixTemplateLink_Basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccZabbixTemplateLinkDeleteTrigger(),
-				Check: resource.ComposeTestCheckFunc(
+				Config: testAccZabbixTemplateLinkDeleteTrigger(groupName, templateName),
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "item.#", "1"),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "server_item.#", "0"),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "trigger.#", "0"),
@@ -35,8 +40,8 @@ func TestAccZabbixTemplateLink_Basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccZabbixTemplateLinkDeleteItem(),
-				Check: resource.ComposeTestCheckFunc(
+				Config: testAccZabbixTemplateLinkDeleteItem(groupName, templateName),
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "item.#", "0"),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "server_item.#", "0"),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "trigger.#", "0"),
@@ -44,8 +49,8 @@ func TestAccZabbixTemplateLink_Basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccZabbixTemplateLinkConfig(),
-				Check: resource.ComposeTestCheckFunc(
+				Config: testAccZabbixTemplateLinkConfig(groupName, templateName),
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "item.#", "1"),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "server_item.#", "0"),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "trigger.#", "1"),
@@ -57,6 +62,10 @@ func TestAccZabbixTemplateLink_Basic(t *testing.T) {
 }
 
 func TestAccZabbixTemplateLink_DeleteServerItem(t *testing.T) {
+	strID := acctest.RandString(5)
+	groupName := fmt.Sprintf("host_group_%s", strID)
+	templateName := fmt.Sprintf("template_%s", strID)
+
 	var template zabbix.Template
 	item := zabbix.Item{
 		Name:  "server_item",
@@ -71,8 +80,8 @@ func TestAccZabbixTemplateLink_DeleteServerItem(t *testing.T) {
 		CheckDestroy: testAccCheckZabbixTemplateLinkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccZabbixTemplateLinkConfig(),
-				Check: resource.ComposeTestCheckFunc(
+				Config: testAccZabbixTemplateLinkConfig(groupName, templateName),
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckTemplateExists("zabbix_template.template_test", &template),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "item.#", "1"),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "server_item.#", "0"),
@@ -82,8 +91,8 @@ func TestAccZabbixTemplateLink_DeleteServerItem(t *testing.T) {
 			},
 			{
 				PreConfig: testAccZabbixTemplateLinkCreateServerItem(template, &item),
-				Config:    testAccZabbixTemplateLinkConfig(),
-				Check: resource.ComposeTestCheckFunc(
+				Config:    testAccZabbixTemplateLinkConfig(groupName, templateName),
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckTemplateServerItemDelete(&item),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "item.#", "1"),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "server_item.#", "0"),
@@ -96,6 +105,10 @@ func TestAccZabbixTemplateLink_DeleteServerItem(t *testing.T) {
 }
 
 func TestAccZabbixTemplateLink_DeleteServerTrigger(t *testing.T) {
+	strID := acctest.RandString(5)
+	groupName := fmt.Sprintf("host_group_%s", strID)
+	templateName := fmt.Sprintf("template_%s", strID)
+
 	var template zabbix.Template
 	item := zabbix.Item{
 		Name:  "server_item",
@@ -113,8 +126,8 @@ func TestAccZabbixTemplateLink_DeleteServerTrigger(t *testing.T) {
 		CheckDestroy: testAccCheckZabbixTemplateLinkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccZabbixTemplateLinkConfig(),
-				Check: resource.ComposeTestCheckFunc(
+				Config: testAccZabbixTemplateLinkConfig(groupName, templateName),
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckTemplateExists("zabbix_template.template_test", &template),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "item.#", "1"),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "server_item.#", "0"),
@@ -124,8 +137,8 @@ func TestAccZabbixTemplateLink_DeleteServerTrigger(t *testing.T) {
 			},
 			{
 				PreConfig: testAccZabbixTemplateLinkCreateServerTrigger(template, item, &trigger),
-				Config:    testAccZabbixTemplateLinkConfig(),
-				Check: resource.ComposeTestCheckFunc(
+				Config:    testAccZabbixTemplateLinkConfig(groupName, templateName),
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckTemplateServerTriggerDelete(&trigger),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "item.#", "1"),
 					resource.TestCheckResourceAttr("zabbix_template_link.template_link_test", "server_item.#", "0"),
@@ -137,27 +150,29 @@ func TestAccZabbixTemplateLink_DeleteServerTrigger(t *testing.T) {
 	})
 }
 
-func testAccZabbixTemplateLinkConfig() string {
+func testAccZabbixTemplateLinkConfig(groupName, templateName string) string {
 	return fmt.Sprintf(`
+		data "zabbix_server" "test" {}
+
 		resource "zabbix_host_group" "zabbix" {
-			name = "host group test"
+			name = "host group test %s"
 		}
 
 		resource "zabbix_template" "template_test" {
-			host = "template_test"
-			groups = ["${zabbix_host_group.zabbix.name}"]
-			name = "display name for template test"
+			host = "%s"
+			groups = [ zabbix_host_group.zabbix.name ]
+			name = "display name for template test %s"
 	  	}
-	  
+
 		resource "zabbix_item" "item_test_0" {
 			name = "item_test_0"
 			key = "bilou.bilou"
 			delay = "34"
-			trends = "300"
-			history = "25"
+			trends = join("", ["300", data.zabbix_server.test.unit_time_days])
+			history = join("", ["25", data.zabbix_server.test.unit_time_days])
 			host_id = "${zabbix_template.template_test.id}"
 		}
-		
+
 		resource "zabbix_trigger" "trigger_test_0" {
 			description = "trigger_test_0"
 			expression  = "{${zabbix_template.template_test.host}:${zabbix_item.item_test_0.key}.last()} = 0"
@@ -173,27 +188,25 @@ func testAccZabbixTemplateLinkConfig() string {
 				trigger_id = zabbix_trigger.trigger_test_0.id
 			}
 		}
-	`)
+	`, groupName, templateName, templateName)
 }
 
-func testAccZabbixTemplateLinkDeleteTrigger() string {
+func testAccZabbixTemplateLinkDeleteTrigger(groupName, templateName string) string {
 	return fmt.Sprintf(`
 		resource "zabbix_host_group" "zabbix" {
-			name = "host group test"
+			name = "host group test %s"
 		}
 
 		resource "zabbix_template" "template_test" {
-			host = "template_test"
+			host = "%s"
 			groups = ["${zabbix_host_group.zabbix.name}"]
-			name = "display name for template test"
+			name = "display name for template test %s"
 	  	}
-	  
+
 		resource "zabbix_item" "item_test_0" {
 			name = "item_test_0"
 			key = "bilou.bilou"
 			delay = "34"
-			trends = "300"
-			history = "25"
 			host_id = "${zabbix_template.template_test.id}"
 		}
 
@@ -203,25 +216,25 @@ func testAccZabbixTemplateLinkDeleteTrigger() string {
 				item_id = zabbix_item.item_test_0.id
 			}
 		}
-	`)
+	`, groupName, templateName, templateName)
 }
 
-func testAccZabbixTemplateLinkDeleteItem() string {
+func testAccZabbixTemplateLinkDeleteItem(groupName, templateName string) string {
 	return fmt.Sprintf(`
 		resource "zabbix_host_group" "zabbix" {
-			name = "host group test"
+			name = "host group test %s"
 		}
 
 		resource "zabbix_template" "template_test" {
-			host = "template_test"
+			host = "%s"
 			groups = ["${zabbix_host_group.zabbix.name}"]
-			name = "display name for template test"
+			name = "display name for template test %s"
 		  }
-		  
+
 		resource "zabbix_template_link" "template_link_test" {
 			template_id = zabbix_template.template_test.id
 		}
-	`)
+	`, groupName, templateName, templateName)
 }
 
 func testAccZabbixTemplateLinkCreateServerItem(template zabbix.Template, item *zabbix.Item) func() {

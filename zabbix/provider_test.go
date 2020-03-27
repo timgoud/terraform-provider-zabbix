@@ -1,4 +1,4 @@
-package provider
+package zabbix
 
 import (
 	"os"
@@ -37,5 +37,10 @@ func testAccPreCheck(t *testing.T) {
 	}
 	if v := os.Getenv("ZABBIX_PASSWORD"); v == "" {
 		t.Fatal("ZABBIX_PASSWORD must be set for acceptance tests")
+	}
+
+	err := testAccProvider.Configure(terraform.NewResourceConfigRaw(nil))
+	if err != nil {
+		t.Fatal(err)
 	}
 }

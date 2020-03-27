@@ -1,4 +1,4 @@
-package provider
+package zabbix
 
 import (
 	"fmt"
@@ -127,6 +127,10 @@ func resourceZabbixTemplateRead(d *schema.ResourceData, meta interface{}) error 
 	templates, err := api.TemplatesGet(params)
 	if err != nil {
 		return err
+	}
+	if len(templates) != 1 {
+		log.Printf("[DEBUG] Expected one template with id %s and got %#v", d.Id(), templates)
+		return fmt.Errorf("Expected one template with id %s and got %d templates", d.Id(), len(templates))
 	}
 
 	template := templates[0]

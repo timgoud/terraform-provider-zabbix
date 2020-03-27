@@ -1,4 +1,4 @@
-package provider
+package zabbix
 
 import (
 	"fmt"
@@ -22,7 +22,7 @@ func TestAccZabbixHostGroup_Basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccZabbixHostGroupConfig(groupName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckZabbixHostGroupExists("zabbix_host_group.zabbix", &hostGroup),
 					testAccCheckZabbixHostGroupAttributes(&hostGroup, expectedHostGroup),
 					resource.TestCheckResourceAttr("zabbix_host_group.zabbix", "name", groupName),
