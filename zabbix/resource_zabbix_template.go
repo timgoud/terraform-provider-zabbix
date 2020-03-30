@@ -23,29 +23,29 @@ func resourceZabbixTemplate() *schema.Resource {
 			"host": &schema.Schema{
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "Technical name of the template",
+				Description: "Technical name of the template.",
 			},
 			"groups": &schema.Schema{
 				Type:        schema.TypeSet,
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Required:    true,
-				Description: "ID of the Host Group",
+				Description: "ID of the Host Group.",
 			},
 			"name": &schema.Schema{
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Visible name of the template",
+				Description: "Visible name of the template.",
 			},
 			"description": &schema.Schema{
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Description of the template",
+				Description: "Description of the template.",
 			},
 			"macro": &schema.Schema{
 				Type:        schema.TypeMap,
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Optional:    true,
-				Description: "User macros for the template",
+				Description: "User macros for the template.",
 			},
 			"linked_template": &schema.Schema{
 				Type:     schema.TypeSet,

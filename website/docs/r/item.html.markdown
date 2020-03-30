@@ -91,6 +91,7 @@ Possible values:
 * `history` - (Optional) Number of days to keep item's history data. Default 90.
 * `trends` - (Optional)	Number of days to keep item's trends data. Default: 365.
 * `trapper_host` - (Optional) Allowed hosts. Used only by trapper items.
+* `status` - (Optional) Whether the trigger is enabled or disabled. Can be `0` (default, enabled), `1` (disabled).
 
 ## Import
 

@@ -97,25 +97,25 @@ func resourceZabbixItem() *schema.Resource {
 			"description": &schema.Schema{
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Description of the item. ",
+				Description: "Description of the item.",
 				Default:     "",
 			},
 			"history": &schema.Schema{
 				Type:        schema.TypeString,
 				Computed:    true,
 				Optional:    true,
-				Description: "Number of days to keep item's history data. From 3.4 version, string is required instead of integer. Default: 90 (90d for 3.4+). ",
+				Description: "Number of days to keep item's history data. From 3.4 version, string is required instead of integer. Default: 90 (90d for 3.4+).",
 			},
 			"trends": &schema.Schema{
 				Type:        schema.TypeString,
 				Computed:    true,
 				Optional:    true,
-				Description: "Number of days to keep item's trends data. From 3.4 version, string is required instead of interger. Default: 365 (365d for 3.4+). ",
+				Description: "Number of days to keep item's trends data. From 3.4 version, string is required instead of interger. Default: 365 (365d for 3.4+).",
 			},
 			"trapper_host": &schema.Schema{
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Allowed hosts. Used only by trapper items. ",
+				Description: "Allowed hosts. Used only by trapper items.",
 			},
 		},
 	}
