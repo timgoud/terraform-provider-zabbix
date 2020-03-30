@@ -113,9 +113,6 @@ Possible values:
 1 - disabled item prototype
 3 - unsupported item prototype.
 
-
-
-
 ## Import
 
 item prototype can be imported using their id, e.g.

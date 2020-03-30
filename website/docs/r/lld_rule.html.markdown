@@ -84,9 +84,6 @@ Possible values:
     * `formula` - (Optional) User-defined expression to be used for evaluating conditions of filters with a custom expression. The expression must contain IDs that reference specific filter conditions by its formulaid. The IDs used in the expression must exactly match the ones defined in the filter conditions: no condition can remainunused or omitted.
 Required for custom expression filters.
 
-
-
-
 ## Import
 
 lld_rule can be imported using their id, e.g.

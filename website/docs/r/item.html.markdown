@@ -92,9 +92,6 @@ Possible values:
 * `trends` - (Optional)	Number of days to keep item's trends data. Default: 365.
 * `trapper_host` - (Optional) Allowed hosts. Used only by trapper items.
 
-
-
-
 ## Import
 
 item can be imported using their id, e.g.

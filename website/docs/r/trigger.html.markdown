@@ -104,7 +104,6 @@ Possible values are:
 1 - disabled.
 * `dependencies` - (Optional) Triggers id that the trigger is dependent on.
 
-
 ## Import
 
 trigger can be imported using their id, e.g.

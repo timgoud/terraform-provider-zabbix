@@ -35,7 +35,6 @@ The following arguments are supported:
 * `description` - (Optional) Description of the template.
 * `macro` - (Optional) Template macro list .
 
-
 ## Import
 
 template can be imported using their id, e.g.

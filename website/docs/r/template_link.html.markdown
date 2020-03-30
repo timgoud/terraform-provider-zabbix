@@ -70,7 +70,6 @@ The following arguments are supported:
 * `lld_rule` - (Optional) Use to track template's low level discovery rule.
     * `lld_rule_id` - (Required) id of the track lld rule. lld_rule can be used multiple time.
 
-
 ## Import
 
 template can be imported using the dependencies id, e.g.
