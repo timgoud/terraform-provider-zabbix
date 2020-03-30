@@ -8,7 +8,7 @@ description: |-
 
 # zabbix_template_link
 
-Provider a virtual resource to track template dependencies such as item, trigger and low level discovery rule.
+Template link is a virtual resource to track template dependencies such as item, trigger and low level discovery rule.
 
 ## Example Usage
 
@@ -72,7 +72,7 @@ The following arguments are supported:
 
 ## Import
 
-template can be imported using the dependencies id, e.g.
+Template links can be imported using their dependencies id, e.g.
 ```
 $ terraform import zabbix_template_link.new_template_link TEMPLATEID_ITEMID_TRIGGERID_LLDRULEID
 ```

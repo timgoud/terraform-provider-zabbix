@@ -8,7 +8,7 @@ description: |-
 
 # zabbix_lld_rule
 
-Provides a zabbix lld_rule resource. This can be used to create and manage Zabbix low level discovery rule.
+[Low-level discovery](https://www.zabbix.com/documentation/current/manual/api/reference/discoveryrule) discovery provides a way to automatically create items, triggers, and graphs for different entities on a host.
 
 ## Example Usage
 
@@ -48,26 +48,11 @@ resource "zabbix_lld_rule" "demo_lld_rule" {
 The following arguments are supported:
 
 * `delay` - (Required) Update interval of the LLD rule in seconds.
-* `host_id` - (Required)ID of the host that the LLD rule belongs to.
-* `interface_id` - (Required)ID of the LLD rule's host interface. Used only for host LLD rules. Optional for Zabbix agent (active), Zabbix internal, Zabbix trapper and database monitor LLD rules.
+* `host_id` - (Required) ID of the host that the LLD rule belongs to.
+* `interface_id` - (Required) ID of the LLD rule's host interface. Used only for host LLD rules. Optional for Zabbix agent (active), Zabbix internal, Zabbix trapper and database monitor LLD rules.
 * `key` - (Required) LLD rule key.
 * `name` - (Required) Name of the LLD rule.
-* `type` - (Required) Type of the LLD rule.
-Possible values:
-0 - Zabbix agent
-1 - SNMPv1 agent
-2 - Zabbix trapper
-3 - simple check
-4 - SNMPv2 agent
-5 - Zabbix internal
-6 - SNMPv3 agent
-7 - Zabbix agent (active)
-10 - external check
-11 - database monitor
-12 - IPMI agent
-13 - SSH agent
-14 - TELNET agent
-16 - JMX agent.
+* `type` - (Required) Type of the LLD rule. Can be `0` (Zabbix agent), `1` (SNMPv1 agent), `2` (Zabbix trapper), `3` (simple check), `4` (SNMPv2 agent), `5` (Zabbix internal), `6` (SNMPv3 agent), `7` (Zabbix agent active), `8` (Zabbix aggregate), `9` (web item), `10` (external check), `11` (database monitor), `12` (IPMI agent), `13` (SSH agent), `14` (TELNET agent), `15` (calculated), `16` (JMX agent).
 * `filter` - (Required) LLD rule filter object for the LLD rule.
     * `condition` - (Required) Set of filter conditions to use for filtering results. Multiple `condition` are allowed.
         * `macro` - (Required) LLD macro to perform the check on.
@@ -86,7 +71,7 @@ Required for custom expression filters.
 
 ## Import
 
-lld_rule can be imported using their id, e.g.
+LLD rules can be imported using their id, e.g.
 
 ```
 $ terraform import zabbix_lld_rule.new_lld_rule 123456

@@ -8,7 +8,7 @@ description: |-
 
 # zabbix_trigger_prototype
 
-Provides a zabbix trigger_prototype resource. This can be used to create and manage Zabbix trigger prototype.
+[Trigger prototypes](https://www.zabbix.com/documentation/current/manual/api/reference/triggerprototype) are logical expressions that “evaluate” data gathered by items and represent the current system state using low level discovery.
 
 ## Example Usage
 
@@ -64,23 +64,13 @@ The following arguments are supported:
 
 * `description` - (Required) Name of the trigger.
 * `expression` - (Required) Expand expression of the trigger.
-* `priority` - (Optional) Severity of the trigger.
-Possible values are:
-0 - (default) not classified
-1 - information
-2 - warning
-3 - average
-4 - high
-5 - disaster.
-* `status` - (Optional) Whether the trigger is enabled or disabled.
-Possible values are:
-0 - (default) enabled
-1 - disabled.
+* `priority` - (Optional) Severity of the trigger. Can be `0` (default, not classified), `1` (information), `2` (warning), `3` (average), `4` (high), `5` (disaster).
+* `status` - (Optional) Whether the trigger is enabled or disabled. Can be `0` (default, enabled), `1` (disabled).
 * `dependencies` - (Optional) Triggers id that the trigger is dependent on.
 
 ## Import
 
-trigger prototype can be imported using their id, e.g.
+Trigger prototypes can be imported using their id, e.g.
 
 ```
 $ terraform import zabbix_trigger_prototype.new_trigger 123456

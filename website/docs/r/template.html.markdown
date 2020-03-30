@@ -8,7 +8,7 @@ description: |-
 
 # zabbix_template
 
-Provides a zabbix template resource. This can be used to create and manage Zabbix Template.
+A [template](https://www.zabbix.com/documentation/current/manual/api/reference/template) is a set of entities that can be conveniently applied to multiple hosts. 
 
 ## Example Usage
 
@@ -37,7 +37,7 @@ The following arguments are supported:
 
 ## Import
 
-template can be imported using their id, e.g.
+Templates can be imported using their id, e.g.
 
 ```
 $ terraform import zabbix_template.new_template 123456

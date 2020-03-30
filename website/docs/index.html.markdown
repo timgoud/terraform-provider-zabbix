@@ -3,13 +3,13 @@ layout: "zabbix"
 page_title: "Provider: Zabbix"
 sidebar_current: "docs-zabbix-index"
 description: |-
-  The Zabbix provider is used to interact with zabbix resource. The provider needs to be configured with the proper credentials before it can be used.
+  The Zabbix provider is used to interact with the resources supported by Zabbix API. The provider needs to be configured with the proper credentials before it can be used.
 ---
 
 # Zabbix Provider
 
-The zabbix provider is used to interact with the
-resources supported by zabbix. The provider needs to be configured
+The [Zabbix](https://www.zabbix.com) provider is used to interact with the resources supported
+by Zabbix API. The provider needs to be configured
 with the proper credentials before it can be used.
 
 Use the navigation to the left to read about the available resources.

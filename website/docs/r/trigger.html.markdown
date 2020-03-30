@@ -8,7 +8,7 @@ description: |-
 
 # zabbix_trigger
 
-Provides a zabbix trigger resource. This can be used to create and manage Zabbix trigger.
+[Triggers](https://www.zabbix.com/documentation/current/manual/api/reference/trigger) are logical expressions that “evaluate” data gathered by items and represent the current system state. 
 
 ## Example Usage
 
@@ -40,7 +40,7 @@ resource "zabbix_trigger" "demo_trigger" {
   description = "demo trigger"
   expression  = "{${zabbix_template.demo_template.host}:${zabbix_item.demo_item.key}.last()}=0"
   priority    = 5
- status      = 0
+  status      = 0
 }
 ```
 
@@ -71,7 +71,7 @@ resource "zabbix_trigger" "demo_trigger" {
   description = "demo trigger"
   expression  = "{${zabbix_template.demo_template.host}:${zabbix_item.demo_item.key}.last()}=0"
   priority    = 5
- status      = 0
+  status      = 0
 }
 
 resource "zabbix_trigger" "demo_trigger" {
@@ -90,23 +90,13 @@ The following arguments are supported:
 * `description` - (Required) Name of the trigger.
 * `expression` - (Required) Expand expression of the trigger.
 * `comment` - (Optional) Additional description of ther trigger.
-* `priority` - (Optional) Severity of the trigger.
-Possible values are:
-0 - (default) not classified
-1 - information
-2 - warning
-3 - average
-4 - high
-5 - disaster.
-* `status` - (Optional) Whether the trigger is enabled or disabled.
-Possible values are:
-0 - (default) enabled
-1 - disabled.
+* `priority` - (Optional) Severity of the trigger. Can be `0` (default, not classified), `1` (information), `2` (warning), `3` (average), `4` (high), `5` (disaster).
+* `status` - (Optional) Whether the trigger is enabled or disabled. Can be `0` (default, enabled), `1` (disabled).
 * `dependencies` - (Optional) Triggers id that the trigger is dependent on.
 
 ## Import
 
-trigger can be imported using their id, e.g.
+Triggers can be imported using their id, e.g.
 
 ```
 $ terraform import zabbix_trigger.new_trigger 123456
