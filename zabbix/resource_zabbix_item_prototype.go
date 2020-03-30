@@ -108,24 +108,24 @@ func resourceZabbixItemPrototype() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Optional:    true,
-				Description: "Number of days to keep item's history data. Default: 90. ",
+				Description: "Number of days to keep item's history data. Default: 90.",
 			},
 			"trends": &schema.Schema{
 				Type:        schema.TypeString,
 				Computed:    true,
 				Optional:    true,
-				Description: "Number of days to keep item's trends data. Default: 365. ",
+				Description: "Number of days to keep item's trends data. Default: 365.",
 			},
 			"trapper_host": &schema.Schema{
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Allowed hosts. Used only by trapper items. ",
+				Description: "Allowed hosts. Used only by trapper items.",
 			},
 			"status": &schema.Schema{
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Default:     "0",
-				Description: "Allowed hosts. Used only by trapper items. ",
+				Description: "Status of the item.",
 			},
 		},
 	}
