@@ -102,6 +102,7 @@ resource "zabbix_trigger_prototype" "free_disk_space_warn" {
   ]
 }
 
+/*
 resource "zabbix_lld_rule_link" "test_link" {
   lld_rule_id = zabbix_lld_rule.filesystem_discovery_rule.id
 
@@ -133,3 +134,4 @@ resource "zabbix_lld_rule_link" "test_link" {
     }
   }
 }
+*/
