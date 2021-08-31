@@ -3,7 +3,7 @@ layout: "zabbix"
 page_title: "Zabbix: zabbix_host_group"
 sidebar_current: "docs-zabbix-resource-host-group"
 description: |-
-  Provides a zabbix hopt resource. This can be used to create and manage Zabbix Host Group.
+  Provides a zabbix host resource. This can be used to create and manage Zabbix Host Group.
 ---
 
 # zabbix_host
@@ -12,7 +12,7 @@ An [host group](https://www.zabbix.com/documentation/current/manual/api/referenc
 
 ## Example Usage
 
-Create a new item
+Create a new host group
 
 ```hcl
 resource "zabbix_host_group" "demo_group" {
