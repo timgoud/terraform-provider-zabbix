@@ -3,7 +3,7 @@ layout: "zabbix"
 page_title: "Zabbix: zabbix_host_group"
 sidebar_current: "docs-zabbix-resource-host-group"
 description: |-
-  Provides a zabbix host resource. This can be used to create and manage Zabbix Host Group.
+  Provides a zabbix host group resource. This can be used to create and manage Zabbix Host Group.
 ---
 
 # zabbix_host

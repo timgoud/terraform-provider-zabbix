@@ -45,7 +45,7 @@ The following arguments are supported:
   * `port` - (Optional) TCP/UDP port number of agent. Default is `10050`.
   * `type` - (Optional) Interface type. Can be `agent` (default), `snmp`, `ipmi`, `jmx`.
 * `groups` - (Optional) List of host group names the host belongs to.
-* `templates` - (Optional) List of template names link to the host.
+* `templates` - (Optional) List of template names to link to the host.
 
 ## Attribute Reference
 
