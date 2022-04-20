@@ -1,13 +1,14 @@
 package zabbix
 
 import (
+	"crypto/tls"
 	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/claranet/go-zabbix-api"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/logging"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/logging"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/mcuadros/go-version"
 )
@@ -30,6 +31,11 @@ func Provider() terraform.ResourceProvider {
 				Type:        schema.TypeString,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ZABBIX_SERVER_URL", nil),
+			},
+			"tls_insecure": &schema.Schema{
+				Type:        schema.TypeBool,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ZABBIX_TLS_INSECURE", nil),
 			},
 		},
 
@@ -68,11 +74,19 @@ func providerConfigure(d *schema.ResourceData, terraformVersion string) (interfa
 
 	api.UserAgent = fmt.Sprintf("HashiCorp/1.0 Terraform/%s", terraformVersion)
 
-	if logging.IsDebugOrHigher() {
-		httpClient := http.Client{}
-		httpClient.Transport = logging.NewTransport("Zabbix", http.DefaultTransport)
-		api.SetClient(&httpClient)
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: d.Get("tls_insecure").(bool),
+			},
+		},
 	}
+
+	if logging.IsDebugOrHigher() {
+		client.Transport = logging.NewTransport("Zabbix", client.Transport)
+	}
+
+	api.SetClient(client)
 
 	if _, err := api.Login(d.Get("user").(string), d.Get("password").(string)); err != nil {
 		return nil, err

@@ -42,3 +42,4 @@ The following arguments are supported:
 * `user` - (Required) Zabbix username. This can also be set via the `ZABBIX_USER` environment variable.
 * `password` - (Required) Zabbix user password. This can also be set via the `ZABBIX_PASSWORD` environment variable.
 * `server_url` - (Required) The API Url. This can be also be set via the `ZABBIX_SERVER_URL` environment variable. Note that this URL must point to `api_jsonrpc.php`. For example `http://localhost/api_jsonrpc.php`.
+* `tls_insecure` - (Optional) Set to `true` for skipping verification of TLS certificates. Also can be set via `ZABBIX_TLS_INSECURE`.
