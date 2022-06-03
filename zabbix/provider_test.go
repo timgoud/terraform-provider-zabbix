@@ -1,34 +1,37 @@
 package zabbix
 
 import (
+	"context"
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-var testAccProviders map[string]terraform.ResourceProvider
+var testAccProviders map[string]*schema.Provider
 var testAccProvider *schema.Provider
 
 func TestProvider(t *testing.T) {
-	if err := Provider().(*schema.Provider).InternalValidate(); err != nil {
+	if err := Provider().InternalValidate(); err != nil {
 		t.Fatalf("err: %s", err)
 	}
 }
 
 func TestProvider_impl(t *testing.T) {
-	var _ terraform.ResourceProvider = Provider()
+	var _ *schema.Provider = Provider()
 }
 
 func init() {
-	testAccProvider = Provider().(*schema.Provider)
-	testAccProviders = map[string]terraform.ResourceProvider{
+	testAccProvider = Provider()
+	testAccProviders = map[string]*schema.Provider{
 		"zabbix": testAccProvider,
 	}
 }
 
 func testAccPreCheck(t *testing.T) {
+	ctx := context.TODO()
+
 	if v := os.Getenv("ZABBIX_SERVER_URL"); v == "" {
 		t.Fatal("ZABBIX_SERVER_URL must be set for acceptance tests")
 	}
@@ -39,7 +42,7 @@ func testAccPreCheck(t *testing.T) {
 		t.Fatal("ZABBIX_PASSWORD must be set for acceptance tests")
 	}
 
-	err := testAccProvider.Configure(terraform.NewResourceConfigRaw(nil))
+	err := testAccProvider.Configure(ctx, terraform.NewResourceConfigRaw(nil))
 	if err != nil {
 		t.Fatal(err)
 	}
