@@ -5,8 +5,8 @@ import (
 	"log"
 	"strings"
 
+	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mcuadros/go-version"
 )
 
 func dataSourceZabbixServer() *schema.Resource {
@@ -98,11 +98,12 @@ func dataSourceZabbixServerRead(d *schema.ResourceData, meta interface{}) (err e
 	d.Set("unit_time_weeks", getZabbixServerUnitWeeks(serverVersion))
 
 	if v, ok := d.GetOkExists("compare_version"); ok {
-		compareVersion := v.(string)
-		d.Set("server_version_gt", version.Compare(serverVersion, compareVersion, ">"))
-		d.Set("server_version_lt", version.Compare(serverVersion, compareVersion, "<"))
-		d.Set("server_version_ge", version.Compare(serverVersion, compareVersion, ">="))
-		d.Set("server_version_le", version.Compare(serverVersion, compareVersion, "<="))
+		sV, _ := version.NewVersion(serverVersion)
+		cV, _ := version.NewVersion(v.(string))
+		d.Set("server_version_gt", sV.GreaterThan(cV))
+		d.Set("server_version_lt", sV.LessThan(cV))
+		d.Set("server_version_ge", sV.GreaterThanOrEqual(cV))
+		d.Set("server_version_le", sV.LessThanOrEqual(cV))
 	}
 
 	return nil

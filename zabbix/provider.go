@@ -7,9 +7,9 @@ import (
 	"net/http"
 
 	"github.com/claranet/go-zabbix-api"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
-	"github.com/mcuadros/go-version"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // Provider define the provider and his resources
@@ -107,7 +107,10 @@ func getZabbixServerVersion(meta interface{}) string {
 }
 
 func isZabbixServerVersion34OrHigher(zabbixVersion string) bool {
-	return version.Compare(zabbixVersion, "3.4.0", ">=")
+	v1, _ := version.NewVersion(zabbixVersion)
+	v2, _ := version.NewVersion("3.4.0")
+
+	return v1.GreaterThanOrEqual(v2)
 }
 
 func getZabbixServerUnitDays(zabbixVersion string) string {
