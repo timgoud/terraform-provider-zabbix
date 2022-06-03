@@ -1,3 +1,27 @@
+## 0.4.0 (June 3, 2022)
+
+NOTES:
+
+- Tested with Zabbix 5.0
+
+FEATURES:
+
+- Update dependencies to resolves Dependabot security alerts
+- Migrate to terraform SDK v2
+- Switch to github.com/hashicorp/go-version
+- Update golang version to 1.8.3 for releases
+
+## 0.3.0 (April 20, 2022)
+
+NOTES:
+
+- Tested with Zabbix 3.2, 3.4, 4.0 and 4.4
+
+FEATURES:
+
+- Introduce `tls_insecure` in provider config for skipping TLS cert verification
+- Update golang version to 1.8.1 for releases
+
 ## 0.2.0 (October 20, 2020)
 
 NOTES:
